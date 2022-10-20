@@ -6,6 +6,17 @@
 #define WARN "\033[33m[WARN]\033[0m "
 #define ERROR "\033[31m[ERROR]\033[0m "
 
+enum log_level {
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR,
+    NO_LOG,
+};
+
+static enum log_level l_level = LOG_INFO;
+
+void set_log_level(enum log_level level);
+
 static void log_msg(const char* level, const char* msg, const char* perr);
 
 void log_info(const char* msg);
