@@ -8,16 +8,16 @@ void set_log_level(enum log_level level)
 
 void log_msg(const char* level, const char* fmt, va_list args, const char* perr)
 {
-    memset(buf, 0, BUF_SIZE);
-    int len = snprintf(buf, BUF_SIZE, "%s", level);
-    len += vsnprintf(buf + len, BUF_SIZE - len, fmt, args);
+    memset(buffer, 0, BUF_SIZE);
+    int len = snprintf(buffer, BUF_SIZE, "%s", level);
+    len += vsnprintf(buffer + len, BUF_SIZE - len, fmt, args);
     if (perr != NULL)
     {
-        strcpy(buf + len, ": ");
-        strcpy(buf + len + 2, perr);
+        strcpy(buffer + len, ": ");
+        strcpy(buffer + len + 2, perr);
     }
-    strcat(buf, "\n");
-    write(STDOUT_FILENO, buf, strlen(buf));
+    strcat(buffer, "\n");
+    write(STDOUT_FILENO, buffer, strlen(buffer));
 }
 
 void log_info(const char* fmt, ...)

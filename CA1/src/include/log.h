@@ -13,7 +13,7 @@
 
 #define BUF_SIZE 1024
 
-static char buf[BUF_SIZE];
+static char buffer[BUF_SIZE];
 
 enum log_level
 {
