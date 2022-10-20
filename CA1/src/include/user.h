@@ -1,5 +1,5 @@
-#ifndef _DEFS_H_
-#define _DEFS_H_
+#ifndef _USER_H_
+#define _USER_H_
 
 #define BUF_SIZE 1024
 #define NET_ADDR "127.0.0.1"
