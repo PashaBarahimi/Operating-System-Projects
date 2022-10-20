@@ -33,8 +33,9 @@ int getBroadcastSockFd(void)
 
 int bindSockToPort(int sockFd, const char* portStr, const char* addr)
 {
-    long port = strtol(portStr, NULL, 10);
-    if (port < 1024 || port > 65535)
+    char* endPtr;
+    long port = strtol(portStr, &endPtr, 10);
+    if (port < 1024 || port > 65535 || *endPtr != '\0')
     {
         log_error("Invalid port number: %s", portStr);
         return -1;
@@ -63,7 +64,7 @@ void getName()
     }
     else if (n == NAME_LEN)
     {
-        log_error("Name too long");
+        log_error("Name too long (max %d characters)", NAME_LEN - 1);
         exit(EXIT_FAILURE);
     }
     name[n - 1] = '\0';
