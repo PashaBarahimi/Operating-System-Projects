@@ -14,8 +14,8 @@ OUT_SELLER = seller
 vpath %.c $(PATH_SRC)
 vpath %.h $(PATH_INC)
 
-OBJS_BUYER  = buyer.o log.o
-OBJS_SELLER = seller.o log.o
+OBJS_BUYER  = buyer.o log.o utils.o
+OBJS_SELLER = seller.o log.o utils.o
 
 # -------------------------------------------------------------------------
 
@@ -34,6 +34,9 @@ $(PATH_OBJ)/seller.o: seller.c log.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(PATH_OBJ)/log.o: log.c log.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(PATH_OBJ)/utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # -------------------------------------------------------------------------
