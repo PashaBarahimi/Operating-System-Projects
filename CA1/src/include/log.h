@@ -1,3 +1,6 @@
+#ifndef _LOG_H_
+#define _LOG_H_
+
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -8,7 +11,7 @@
 #define WARN "\033[33m[WARN]\033[0m "
 #define ERROR "\033[31m[ERROR]\033[0m "
 
-#define BUF_SIZE 120
+#define BUF_SIZE 1024
 
 static char buf[BUF_SIZE];
 
@@ -28,3 +31,5 @@ void log_info(const char* fmt, ...);
 void log_warn(const char* fmt, ...);
 void log_error(const char* fmt, ...);
 void log_perror(const char* fmt, ...);
+
+#endif
