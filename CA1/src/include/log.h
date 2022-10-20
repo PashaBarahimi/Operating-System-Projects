@@ -13,19 +13,17 @@
 
 #define BUF_SIZE 1024
 
-static char buffer[BUF_SIZE];
-
-enum log_level
+typedef enum
 {
     LOG_INFO,
     LOG_WARN,
     LOG_ERROR,
     NO_LOG,
-};
+} log_level;
 
-static enum log_level l_level = LOG_INFO;
+static log_level l_level = LOG_INFO;
 
-void set_log_level(enum log_level level);
+void set_log_level(log_level level);
 
 void log_info(const char* fmt, ...);
 void log_warn(const char* fmt, ...);

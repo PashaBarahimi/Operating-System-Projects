@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -8,10 +9,11 @@
 
 char buf[BUF_SIZE];
 char name[NAME_LEN];
+int bcSockFd;
 
 int getBroadcastSockFd(void)
 {
-    int sockFd = socket(AF_INET, SOCK_DGRAM, 0);
+    int sockFd = socket(PF_INET, SOCK_DGRAM, 0);
     if (sockFd < 0)
     {
         log_perror("socket");
@@ -31,7 +33,7 @@ int getBroadcastSockFd(void)
     return sockFd;
 }
 
-int bindSockToPort(int sockFd, const char* portStr, const char* addr)
+int getPort(const char* portStr)
 {
     char* endPtr;
     long port = strtol(portStr, &endPtr, 10);
@@ -40,16 +42,22 @@ int bindSockToPort(int sockFd, const char* portStr, const char* addr)
         log_error("Invalid port number: %s", portStr);
         return -1;
     }
+    return (int)port;
+}
+
+int bindSockToPort(const char* portStr, const char* addr)
+{
+    int port = getPort(portStr);
     struct sockaddr_in bc_address;
     bc_address.sin_family = AF_INET;
     bc_address.sin_port = htons((uint16_t)port);
     bc_address.sin_addr.s_addr = inet_addr(addr);
-    if (bind(sockFd, (struct sockaddr*)&bc_address, sizeof(bc_address)) < 0)
+    if (bind(bcSockFd, (struct sockaddr*)&bc_address, sizeof(bc_address)) < 0)
     {
         log_perror("bind");
         return -1;
     }
-    return (int)port;
+    return port;
 }
 
 void getName()
@@ -68,4 +76,28 @@ void getName()
         exit(EXIT_FAILURE);
     }
     name[n - 1] = '\0';
+}
+
+void setupUser(int argc, const char* argv[])
+{
+    int port;
+
+    if (argc != 2)
+    {
+        log_error("Usage: %s <port>", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if ((bcSockFd = getBroadcastSockFd()) < 0) exit(EXIT_FAILURE);
+    if ((port = bindSockToPort(argv[1], BROADCAST_ADDR)) < 0)
+    {
+        close(bcSockFd);
+        exit(EXIT_FAILURE);
+    }
+    log_info("Socket bound to port %d", port);
+
+    signal(SIGINT, interruptHandler);
+
+    getName();
+    log_info("Logged in as: %s", name);
 }

@@ -1,6 +1,8 @@
 #include "include/log.h"
 
-void set_log_level(enum log_level level)
+char buffer[BUF_SIZE];
+
+void set_log_level(log_level level)
 {
     if (level < 0 || level > NO_LOG) return;
     l_level = level;
