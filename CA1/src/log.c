@@ -6,38 +6,53 @@ void set_log_level(enum log_level level)
     l_level = level;
 }
 
-static void log_msg(const char* level, const char* msg, const char* perr)
+void log_msg(const char* level, const char* fmt, va_list args, const char* perr)
 {
-    write(STDOUT_FILENO, level, strlen(level));
-    write(STDOUT_FILENO, msg, strlen(msg));
-    if (perr != NULL) {
-        write(STDOUT_FILENO, ": ", 2);
-        write(STDOUT_FILENO, perr, strlen(perr));
+    memset(buf, 0, BUF_SIZE);
+    int len = snprintf(buf, BUF_SIZE, "%s", level);
+    len += vsnprintf(buf + len, BUF_SIZE - len, fmt, args);
+    if (perr != NULL)
+    {
+        strcpy(buf + len, ": ");
+        strcpy(buf + len + 2, perr);
     }
-    write(STDOUT_FILENO, "\n", 1);
+    strcat(buf, "\n");
+    write(STDOUT_FILENO, buf, strlen(buf));
 }
 
-void log_info(const char* msg)
+void log_info(const char* fmt, ...)
 {
     if (l_level > LOG_INFO) return;
-    log_msg(INFO, msg, NULL);
+    va_list args;
+    va_start(args, fmt);
+    log_msg(INFO, fmt, args, NULL);
+    va_end(args);
 }
 
-void log_warn(const char* msg)
+void log_warn(const char* fmt, ...)
 {
     if (l_level > LOG_WARN) return;
-    log_msg(WARN, msg, NULL);
+    va_list args;
+    va_start(args, fmt);
+    log_msg(WARN, fmt, args, NULL);
+    va_end(args);
 }
 
-void log_error(const char* msg)
+void log_error(const char* fmt, ...)
 {
     if (l_level > LOG_ERROR) return;
-    log_msg(ERROR, msg, NULL);
+    va_list args;
+    va_start(args, fmt);
+    log_msg(ERROR, fmt, args, NULL);
+    va_end(args);
 }
 
-void log_perror(const char* msg)
+void log_perror(const char* fmt, ...)
 {
     if (l_level > LOG_ERROR) return;
     char* err = strerror(errno);
-    log_msg(ERROR, msg, err);
+    va_list args;
+    va_start(args, fmt);
+    log_msg(ERROR, fmt, args, err);
+    va_end(args);
 }
