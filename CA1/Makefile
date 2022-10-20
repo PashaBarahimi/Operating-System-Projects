@@ -19,7 +19,7 @@ OBJS_SELLER = seller.o log.o user.o
 
 # -------------------------------------------------------------------------
 
-all: $(PATH_OBJ) $(PATH_LOG) $(OUT_BUYER) #$(OUT_SELLER)
+all: $(PATH_OBJ) $(PATH_LOG) $(OUT_BUYER) $(OUT_SELLER)
 
 $(OUT_BUYER): $(addprefix $(PATH_OBJ)/, $(OBJS_BUYER))
 	$(CC) $(CFLAGS) -o $@ $^
