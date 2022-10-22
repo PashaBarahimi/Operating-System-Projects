@@ -4,10 +4,9 @@
 #define BUF_SIZE 1024
 #define NAME_LEN 32
 #define ADVERT_NAME_LEN 64
-#define MAX_ADVERTS 100
 #define NEGOTIATION_TIMEOUT 60
 #define NET_ADDR "127.0.0.1"
-#define BROADCAST_ADDR "192.168.1.255"
+#define BROADCAST_ADDR "192.168.23.255"
 #define ACCEPT_OFFER "accept"
 #define REJECT_OFFER "reject"
 
@@ -17,7 +16,7 @@
 
 typedef enum
 {
-    PENDING,
+    AVAILABLE,
     NEGOTIATING,
     SOLD,
 } advertisement_status;
@@ -25,6 +24,7 @@ typedef enum
 extern char buf[BUF_SIZE];
 extern char name[NAME_LEN];
 extern int bcSockFd;
+extern struct sockaddr_in bcAddr;
 
 extern void interruptHandler(int sig);
 
