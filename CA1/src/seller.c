@@ -9,6 +9,8 @@
 #include "include/user.h"
 
 #define MIN_ADVERTS_COUNT 10
+#define LOG_DIR "log"
+#define LOG_EXT ".txt"
 
 #define HELP_MSG "Commands:\n" \
                  "\thelp - show this message\n" \
@@ -113,7 +115,7 @@ int findAdvertisementFromBuf(const char* endDelim)
             log_error("Invalid id");
             return -1;
         }
-        return id;
+        return id - 1;
     }
     if (strcmp(type, "--name") == 0)
     {
@@ -165,19 +167,28 @@ int getTcpSockFd()
         log_perror("socket");
         return -1;
     }
+    int opt = 1;
+    if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+    {
+        log_perror("setsockopt");
+        close(sockFd);
+        return -1;
+    }
     return sockFd;
 }
 
 void logSale(int index)
 {
-    char fileName[NAME_LEN + 4];
-    sprintf(fileName, "%s.txt", name);
-    int fd = open(fileName, O_WRONLY | O_CREAT | O_APPEND);
+    char* fileName = malloc(strlen(LOG_DIR) + 1 + strlen(LOG_EXT));
+    sprintf(fileName, "%s/%s%s", LOG_DIR, name, LOG_EXT);
+    int fd = open(fileName, O_RDWR | O_APPEND | O_CREAT, 0644);
+    free(fileName);
     if (fd < 0)
     {
         log_perror("open");
         return;
     }
+    memset(buf, 0, BUF_SIZE);
     sprintf(buf, "%s -> %d", adverts[index].name, adverts[index].latestOffer);
     if (write(fd, buf, strlen(buf)) < 0)
         log_perror("write");
@@ -283,6 +294,7 @@ void listAdvertisements()
     write(STDOUT_FILENO, ADVERT_COLOR, strlen(ADVERT_COLOR));
     for (int i = 0; i < advertsCount; i++)
     {
+        memset(buf, 0, BUF_SIZE);
         char* status = adverts[i].status == AVAILABLE ? "AVAILABLE" : (adverts[i].status == NEGOTIATING ? "NEGOTIATING" : "SOLD");
         sprintf(buf, "%d -> %s, Port: %d, Status: %s, Latest Offer: %d\n", i + 1, adverts[i].name, adverts[i].port, status, adverts[i].latestOffer);
         write(STDOUT_FILENO, buf, strlen(buf));
@@ -313,12 +325,18 @@ void getClientMessage(int index)
         return;
     }
     log_info("New message received for %s", adverts[index].name);
-    sprintf(buf, "Client (%s): %s", adverts[index].name, message);
+    char* msg = malloc(strlen(message) + 1);
+    strcpy(msg, message);
+    memset(buf, 0, BUF_SIZE);
+    sprintf(buf, "Client (%s): %s", adverts[index].name, msg);
+    free(msg);
     write(STDOUT_FILENO, buf, strlen(buf));
+    write(STDOUT_FILENO, "\n", 1);
 }
 
 void getClientResponse(int sockFd, int index, fd_set* masterSet, int* maxFd)
 {
+    memset(buf, 0, BUF_SIZE);
     int bytes = recv(sockFd, buf, BUF_SIZE, 0);
     if (bytes < 0)
     {
@@ -332,15 +350,15 @@ void getClientResponse(int sockFd, int index, fd_set* masterSet, int* maxFd)
         return;
     }
     char* type = strtok(buf, "|");
-    if (type != NULL && strcmp(type, "offer"))
+    if (type != NULL && strcmp(type, "offer") == 0)
         getClientOffer(index);
-    else if (type != NULL && strcmp(type, "message"))
+    else if (type != NULL && strcmp(type, "msg") == 0)
         getClientMessage(index);
     else
         log_warn("Invalid message received from client");
 }
 
-void addAdvertisement()
+void addAdvertisement(fd_set* masterSet, int* maxFd)
 {
     int port;
     char* name = strtok(NULL, " ");
@@ -361,6 +379,9 @@ void addAdvertisement()
         close(sockFd);
         return;
     }
+    FD_SET(sockFd, masterSet);
+    if (sockFd > *maxFd)
+        *maxFd = sockFd;
     insertAdvertisement(name, port, sockFd);
     log_info("Advertisement added: %s (Port %d)", name, port);
     broadcastNewAdvert(&adverts[advertsCount - 1]);
@@ -439,12 +460,13 @@ void rejectOffer(fd_set* masterSet, int* maxFd)
 
 int readCommand(fd_set* masterSet, int* maxFd)
 {
+    memset(buf, 0, BUF_SIZE);
     read(STDIN_FILENO, buf, BUF_SIZE);
     char* command = strtok(buf, " \n\0");
     if (command == NULL)
         return 0;
     if (strcmp(command, "add") == 0)
-        addAdvertisement();
+        addAdvertisement(masterSet, maxFd);
     else if (strcmp(command, "help") == 0)
         write(STDOUT_FILENO, HELP_MSG, strlen(HELP_MSG));
     else if (strcmp(command, "list") == 0)

@@ -24,7 +24,7 @@ typedef struct
     char name[ADVERT_NAME_LEN];
     char owner[NAME_LEN];
     advertisement_status status;
-    u_int16_t port;
+    uint16_t port;
 } advertisement;
 
 advertisement* adverts = NULL;
@@ -51,7 +51,7 @@ void interruptHandler(int sig)
     exit(EXIT_SUCCESS);
 }
 
-void addAdvertisement(const char* name, const char* owner, u_int16_t port)
+void addAdvertisement(const char* name, const char* owner, uint16_t port)
 {
     if (advertsCount == advertsCapacity)
     {
@@ -277,7 +277,7 @@ void negotiate(int* maxFd, fd_set* masterSet)
     else if (type != NULL && strcmp(type, "--id") == 0)
     {
         char* indexStr = strtok(NULL, " \n");
-        if (indexStr == NULL || (index = atoi(indexStr)) < 1 || index >= advertsCount)
+        if (indexStr == NULL || (index = atoi(indexStr)) <= 0 || index > advertsCount)
         {
             log_error("Invalid advertisement id");
             return;
@@ -293,7 +293,7 @@ void negotiate(int* maxFd, fd_set* masterSet)
         log_error("Advertisement %s is not available", adverts[index].name);
         return;
     }
-    connectToAdvertiser(index, maxFd, masterSet);
+    connectToAdvertiser(index - 1, maxFd, masterSet);
 }
 
 void sendMsg(fd_set* masterSet)
@@ -303,13 +303,17 @@ void sendMsg(fd_set* masterSet)
         log_error("Not negotiating");
         return;
     }
-    char* msg = strtok(NULL, "\n");
-    if (msg == NULL)
+    char* message = strtok(NULL, "\n");
+    if (message == NULL)
     {
         log_error("Invalid message");
         return;
     }
+    char* msg = malloc(strlen(message) + 1);
+    strcpy(msg, message);
+    memset(buf, '\0', BUF_SIZE);
     sprintf(buf, "msg|%s", msg);
+    free(msg);
     if (send(negSockFd, buf, strlen(buf), 0) < 0)
     {
         log_perror("send");
@@ -332,6 +336,7 @@ void sendOffer(fd_set* masterSet)
         log_error("Invalid offer");
         return;
     }
+    memset(buf, '\0', BUF_SIZE);
     sprintf(buf, "offer|%d", offerInt);
     if (send(negSockFd, buf, strlen(buf), 0) < 0)
     {
@@ -396,11 +401,6 @@ int handleEvent(int* maxFd, fd_set* masterSet, fd_set* workingSet)
         else
             endNegotiation(masterSet);
     }
-    if (alarm_fired)
-    {
-        log_warn("Negotiation timed out");
-        endNegotiation(masterSet);
-    }
     return 1;
 }
 
@@ -418,12 +418,14 @@ void runClient()
     {
         workingSet = masterSet;
         if (select(maxFd + 1, &workingSet, NULL, NULL, NULL) < 0)
-        {
             log_perror("select");
-            continue;
-        }
-        if (!handleEvent(&maxFd, &masterSet, &workingSet))
+        else if (!handleEvent(&maxFd, &masterSet, &workingSet))
             break;
+        if (alarm_fired)
+        {
+            log_warn("Negotiation timed out");
+            endNegotiation(&masterSet);
+        }
     }
 }
 
