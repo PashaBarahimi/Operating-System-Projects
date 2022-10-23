@@ -321,8 +321,10 @@ void getClientMessage(int index)
     memset(buf, 0, BUF_SIZE);
     sprintf(buf, "Client (%s): %s", adverts.ads[index].name, msg);
     free(msg);
+    write(STDOUT_FILENO, CHAT_COLOR, strlen(CHAT_COLOR));
     write(STDOUT_FILENO, buf, strlen(buf));
     write(STDOUT_FILENO, "\n", 1);
+    write(STDOUT_FILENO, RESET_COLOR, strlen(RESET_COLOR));
 }
 
 void getClientResponse(int sockFd, int index)

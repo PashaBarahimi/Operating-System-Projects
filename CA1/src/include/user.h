@@ -13,6 +13,7 @@
 #define PROMPT ">> "
 
 #define ADVERT_COLOR "\033[1;36m"
+#define CHAT_COLOR "\033[35;1m"
 #define RESET_COLOR "\033[0m"
 
 

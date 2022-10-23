@@ -152,9 +152,11 @@ int getAdvertiserAnswer()
         return 0;
     }
     logInfo("New answer recieved from adveriser");
+    write(STDOUT_FILENO, CHAT_COLOR, strlen(CHAT_COLOR));
     write(STDOUT_FILENO, "Advertiser: ", 12);
     write(STDOUT_FILENO, buf, strlen(buf));
     write(STDOUT_FILENO, "\n", 1);
+    write(STDOUT_FILENO, RESET_COLOR, strlen(RESET_COLOR));
     if (strcmp(buf, ACCEPT_OFFER) == 0)
     {
         logInfo("Offer accepted by advertiser");
@@ -263,7 +265,7 @@ void negotiate()
 {
     if (negSockFd != -1)
     {
-        logError("Already negotiating");
+        logError("Already negotiating with an advertiser");
         return;
     }
     int index = findAdvertisementFromBuf(" \n");
