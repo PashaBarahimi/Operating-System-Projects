@@ -55,6 +55,7 @@ void freeResources()
 
 void interruptHandler(int sig)
 {
+    removeLine();
     logWarn("Interrupted");
     freeResources();
     exit(EXIT_SUCCESS);
@@ -372,6 +373,7 @@ int handleEvent(fd_set* workingSet)
         int exit = readCommand();
         if (exit) return 0;
     }
+    removeLine();
     if (FD_ISSET(bcSockFd, workingSet))
         if (recieveBroadcast())
             listAdvertisements();
@@ -399,6 +401,7 @@ void runClient()
     while (1)
     {
         workingSet = masterSet;
+        write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
         if (select(maxFd + 1, &workingSet, NULL, NULL, NULL) < 0)
             logPError("select");
         else if (!handleEvent(&workingSet))

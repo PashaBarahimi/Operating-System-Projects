@@ -32,7 +32,7 @@ typedef struct
 
 struct advertisements
 {
-    advertisement *ads;
+    advertisement* ads;
     size_t capacity;
     size_t count;
 } adverts = { NULL, 0, 0 };
@@ -53,6 +53,7 @@ void freeResources()
 
 void interruptHandler(int sig)
 {
+    removeLine();
     logWarn("Interrupted");
     freeResources();
     exit(EXIT_SUCCESS);
@@ -501,6 +502,7 @@ void runClient()
     while (1)
     {
         workingSet = masterSet;
+        write(STDOUT_FILENO, PROMPT, strlen(PROMPT));
         if (select(maxFd + 1, &workingSet, NULL, NULL, NULL) < 0)
         {
             logPError("select");
@@ -512,10 +514,10 @@ void runClient()
             if (exit)
                 break;
         }
-        else
-            for (int i = 1; i <= maxFd; ++i)
-                if (FD_ISSET(i, &workingSet))
-                    handleSocketEvent(i);
+        removeLine();
+        for (int i = 1; i <= maxFd; ++i)
+            if (FD_ISSET(i, &workingSet))
+                handleSocketEvent(i);
     }
 }
 

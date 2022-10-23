@@ -102,3 +102,11 @@ void setupUser(int argc, const char* argv[])
     logInfo("Logged in as: %s", name);
     write(STDOUT_FILENO, "Type 'help' for help\n", 21);
 }
+
+void removeLine()
+{
+    write(STDOUT_FILENO, "\r", 1);
+    for (int i = 0; i < BUF_SIZE && buf[i] != '\0'; ++i)
+        write(STDOUT_FILENO, " ", 1);
+    write(STDOUT_FILENO, "\r", 1);
+}

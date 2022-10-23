@@ -10,6 +10,7 @@
 #define ACCEPT_OFFER "accept"
 #define REJECT_OFFER "reject"
 #define MESSAGE_DELIMITER "|"
+#define PROMPT ">> "
 
 #define ADVERT_COLOR "\033[1;36m"
 #define RESET_COLOR "\033[0m"
@@ -34,5 +35,6 @@ int getPort(const char* portStr);
 int bindSockToPort(const char* portStr, const char* add);
 void getName();
 void setupUser(int argc, const char* argv[]);
+void removeLine();
 
 #endif
