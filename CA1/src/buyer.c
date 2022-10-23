@@ -27,8 +27,15 @@ typedef struct
     uint16_t port;
 } advertisement;
 
-advertisement* adverts = NULL;
-int alarm_fired = 0, negSockFd = -1, advertsCount = 0, advertsCapacity = 0;
+struct
+{
+    advertisement* ads;
+    size_t capacity;
+    size_t count;
+} adverts;
+
+
+int alarm_fired = 0, negSockFd = -1;
 
 void alarmHandler(int sig)
 {
@@ -40,8 +47,8 @@ void freeResources()
     if (negSockFd != -1)
         close(negSockFd);
     close(bcSockFd);
-    if (adverts != NULL)
-        free(adverts);
+    if (adverts.ads != NULL)
+        free(adverts.ads);
 }
 
 void interruptHandler(int sig)
@@ -51,60 +58,48 @@ void interruptHandler(int sig)
     exit(EXIT_SUCCESS);
 }
 
-void addAdvertisement(const char* name, const char* owner, uint16_t port)
+void addAdvertisement(const char* name, const char* owner, uint16_t port, advertisement_status status)
 {
-    if (advertsCount == advertsCapacity)
+    if (adverts.count == adverts.capacity)
     {
-        if (advertsCapacity == 0)
-        {
-            advertsCapacity = MIN_ADVERTS_COUNT;
-            adverts = malloc(advertsCapacity * sizeof(advertisement));
-        }
-        else
-        {
-            advertsCapacity *= 2;
-            adverts = realloc(adverts, advertsCapacity * sizeof(advertisement));
-        }
+        adverts.capacity = adverts.capacity == 0 ? MIN_ADVERTS_COUNT : adverts.capacity * 2;
+        adverts.ads = (advertisement*)realloc(adverts.ads, adverts.capacity * sizeof(advertisement));
     }
-    strcpy(adverts[advertsCount].name, name);
-    strcpy(adverts[advertsCount].owner, owner);
-    adverts[advertsCount].port = port;
-    adverts[advertsCount].status = AVAILABLE;
-    ++advertsCount;
+    strcpy(adverts.ads[adverts.count].name, name);
+    strcpy(adverts.ads[adverts.count].owner, owner);
+    adverts.ads[adverts.count].port = port;
+    adverts.ads[adverts.count].status = status;
+    ++adverts.count;
 }
 
-int editAdvertisementStatus(const char* name, advertisement_status status)
+void updateAdvertisement(const char* name, const char* owner, uint16_t port, advertisement_status status)
 {
-    for (int i = 0; i < advertsCount; ++i)
-        if (strcmp(adverts[i].name, name) == 0)
+    for (int i = 0; i < adverts.count; ++i)
+        if (strcmp(adverts.ads[i].name, name) == 0)
         {
-            adverts[i].status = status;
-            return 0;
+            adverts.ads[i].status = status;
+            log_info("Advertisement %s updated", name);
+            return;
         }
-    return -1;
+    addAdvertisement(name, owner, port, status);
+    log_info("Advertisement %s added", name);
 }
 
-void handleNewAdvertisement()
+int recieveBroadcast()
 {
-    char* name = strtok(NULL, "|");
+    memset(buf, 0, BUF_SIZE);
+    int bytes = recvfrom(bcSockFd, buf, BUF_SIZE, 0, NULL, NULL);
+    if (bytes < 0)
+        log_error("Error while recieving broadcast");
+    if (bytes == 0)
+        log_error("Broadcast connection closed");
+    char* name = strtok(buf, "|");
     char* owner = strtok(NULL, "|");
-    char* portStr = strtok(NULL, " \n\0");
-    int port;
-    if (name != NULL && owner != NULL && portStr != NULL && (port = getPort(portStr)) != -1)
-    {
-        log_info("New advertisement from %s: %s", owner, name);
-        addAdvertisement(name, owner, port);
-    }
-    else
-        log_warn("Invalid advertisement");
-}
-
-void handleAdvertisementUpdate()
-{
-    char* name = strtok(NULL, "|");
+    char* portStr = strtok(NULL, "|");
     char* statusStr = strtok(NULL, " \n\0");
+    int port;
     advertisement_status status;
-    if (name != NULL && statusStr != NULL)
+    if (name != NULL && owner != NULL && portStr != NULL && (port = getPort(portStr)) != -1 && statusStr != NULL)
     {
         if (strcmp(statusStr, "SOLD") == 0)
             status = SOLD;
@@ -115,44 +110,13 @@ void handleAdvertisementUpdate()
         else
         {
             log_warn("Invalid advertisement status");
-            return;
+            return 1;
         }
-        if (editAdvertisementStatus(name, status) == 0)
-            log_info("Advertisement %s status changed to %s", name, statusStr);
-        else
-            log_warn("Advertisement %s not found", name);
-    }
-    else
-        log_warn("Invalid advertisement");
-}
-
-int recieveBroadcast()
-{
-    memset(buf, 0, BUF_SIZE);
-    int bytes = recvfrom(bcSockFd, buf, BUF_SIZE, 0, NULL, NULL);
-    if (bytes < 0)
-    {
-        log_error("Error while recieving broadcast");
-        return 0;
-    }
-    if (bytes == 0)
-    {
-        log_error("Broadcast connection closed");
-        return 0;
-    }
-    char* type = strtok(buf, "|");
-    if (type != NULL && strcmp(type, "new") == 0)
-    {
-        handleNewAdvertisement();
+        log_info("New broadcast recieved");
+        updateAdvertisement(name, owner, port, status);
         return 1;
     }
-    else if (type != NULL && strcmp(type, "update") == 0)
-    {
-        handleAdvertisementUpdate();
-        return 1;
-    }
-    else
-        log_warn("Invalid broadcast message");
+    log_warn("Invalid broadcast");
     return 0;
 }
 
@@ -160,11 +124,11 @@ void listAdvertisements()
 {
     write(STDOUT_FILENO, "\nAdvertisements:\n", 17);
     write(STDOUT_FILENO, ADVERT_COLOR, strlen(ADVERT_COLOR));
-    for (int i = 0; i < advertsCount; ++i)
+    for (int i = 0; i < adverts.count; ++i)
     {
         memset(buf, '\0', BUF_SIZE);
-        char* status = adverts[i].status == AVAILABLE ? "AVAILABLE" : (adverts[i].status == NEGOTIATING ? "NEGOTIATING" : "SOLD");
-        sprintf(buf, "%d -> Seller: %s, Advertisement: %s, Status: %s, Port: %d\n", i + 1, adverts[i].owner, adverts[i].name, status, adverts[i].port);
+        char* status = adverts.ads[i].status == AVAILABLE ? "AVAILABLE" : (adverts.ads[i].status == NEGOTIATING ? "NEGOTIATING" : "SOLD");
+        sprintf(buf, "%d -> Seller: %s, Advertisement: %s, Status: %s, Port: %d\n", i + 1, adverts.ads[i].owner, adverts.ads[i].name, status, adverts.ads[i].port);
         write(STDOUT_FILENO, buf, strlen(buf));
     }
     write(STDOUT_FILENO, RESET_COLOR, strlen(RESET_COLOR));
@@ -225,8 +189,8 @@ int findAdvertisement(const char* name)
 {
     if (name != NULL)
     {
-        for (int i = 0; i < advertsCount; ++i)
-            if (strcmp(adverts[i].name, name) == 0)
+        for (int i = 0; i < adverts.count; ++i)
+            if (strcmp(adverts.ads[i].name, name) == 0)
                 return i;
         return -1;
     }
@@ -243,7 +207,7 @@ void connectToAdvertiser(int index, int* maxFd, fd_set* masterSet)
     }
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(adverts[index].port);
+    addr.sin_port = htons(adverts.ads[index].port);
     addr.sin_addr.s_addr = inet_addr(NET_ADDR);
     if (connect(negSockFd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
@@ -277,7 +241,7 @@ void negotiate(int* maxFd, fd_set* masterSet)
     else if (type != NULL && strcmp(type, "--id") == 0)
     {
         char* indexStr = strtok(NULL, " \n");
-        if (indexStr == NULL || (index = atoi(indexStr)) <= 0 || index > advertsCount)
+        if (indexStr == NULL || (index = atoi(indexStr)) <= 0 || index > adverts.count)
         {
             log_error("Invalid advertisement id");
             return;
@@ -288,9 +252,9 @@ void negotiate(int* maxFd, fd_set* masterSet)
         log_error("Invalid argument");
         return;
     }
-    if (adverts[index].status != AVAILABLE)
+    if (adverts.ads[index].status != AVAILABLE)
     {
-        log_error("Advertisement %s is not available", adverts[index].name);
+        log_error("Advertisement %s is not available", adverts.ads[index].name);
         return;
     }
     connectToAdvertiser(index - 1, maxFd, masterSet);
@@ -319,6 +283,7 @@ void sendMsg(fd_set* masterSet)
         log_perror("send");
         endNegotiation(masterSet);
     }
+    alarm(NEGOTIATION_TIMEOUT);
     log_info("Message sent to advertiser");
 }
 
@@ -343,6 +308,7 @@ void sendOffer(fd_set* masterSet)
         log_perror("send");
         endNegotiation(masterSet);
     }
+    alarm(NEGOTIATION_TIMEOUT);
     log_info("Offer sent to advertiser");
 }
 
