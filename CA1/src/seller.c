@@ -24,7 +24,7 @@
 typedef struct
 {
     char name[ADVERT_NAME_LEN];
-    advertisement_status status;
+    advertisementStatus status;
     uint16_t port;
     int latestOffer;
     int sockFd;
@@ -35,7 +35,10 @@ struct advertisements
     advertisement *ads;
     size_t capacity;
     size_t count;
-} adverts = {NULL, 0, 0};
+} adverts = { NULL, 0, 0 };
+
+fd_set masterSet;
+int maxFd;
 
 
 void freeResources()
@@ -50,7 +53,7 @@ void freeResources()
 
 void interruptHandler(int sig)
 {
-    log_warn("Interrupted");
+    logWarn("Interrupted");
     freeResources();
     exit(EXIT_SUCCESS);
 }
@@ -74,10 +77,10 @@ void broadcastAdvert(const advertisement* advert)
 {
     memset(buf, 0, BUF_SIZE);
     char* status = advert->status == AVAILABLE ? "AVAILABLE" : (advert->status == NEGOTIATING ? "NEGOTIATING" : "SOLD");
-    sprintf(buf, "%s|%s|%d|%s", advert->name, name, advert->port, status);
+    sprintf(buf, "%s%s%s%s%d%s%s", advert->name, MESSAGE_DELIMITER, name, MESSAGE_DELIMITER, advert->port, MESSAGE_DELIMITER, status);
     if (sendto(bcSockFd, buf, BUF_SIZE, 0, (struct sockaddr*)&bcAddr, sizeof(bcAddr)) < 0)
-        log_perror("sendto");
-    log_info("New advertisement broadcasted");
+        logPError("sendto");
+    logInfo("New advertisement broadcasted");
 }
 
 int findAdvertisementFromBuf(const char* endDelim)
@@ -85,13 +88,13 @@ int findAdvertisementFromBuf(const char* endDelim)
     char* type = strtok(NULL, " ");
     if (type == NULL)
     {
-        log_error("Missing argument");
+        logError("Missing argument");
         return -1;
     }
     char* token = strtok(NULL, endDelim);
     if (token == NULL)
     {
-        log_error("Missing argument");
+        logError("Missing argument");
         return -1;
     }
     if (strcmp(type, "--id") == 0)
@@ -99,7 +102,7 @@ int findAdvertisementFromBuf(const char* endDelim)
         int id = atoi(token);
         if (id <= 0 || id > adverts.count)
         {
-            log_error("Invalid id");
+            logError("Invalid id");
             return -1;
         }
         return id - 1;
@@ -109,10 +112,10 @@ int findAdvertisementFromBuf(const char* endDelim)
         for (int i = 0; i < adverts.count; i++)
             if (strcmp(adverts.ads[i].name, token) == 0)
                 return i;
-        log_error("Invalid name");
+        logError("Invalid name");
         return -1;
     }
-    log_error("Invalid argument");
+    logError("Invalid argument");
     return -1;
 }
 
@@ -133,13 +136,13 @@ int bindTcpSocket(int sockFd, uint16_t port)
     addr.sin_port = htons(port);
     if (bind(sockFd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
-        log_perror("bind");
+        logPError("bind");
         close(sockFd);
         return -1;
     }
     if (listen(sockFd, 1) < 0)
     {
-        log_perror("listen");
+        logPError("listen");
         close(sockFd);
         return -1;
     }
@@ -151,13 +154,13 @@ int getTcpSockFd()
     int sockFd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockFd < 0)
     {
-        log_perror("socket");
+        logPError("socket");
         return -1;
     }
     int opt = 1;
     if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
-        log_perror("setsockopt");
+        logPError("setsockopt");
         close(sockFd);
         return -1;
     }
@@ -172,42 +175,42 @@ void logSale(int index)
     free(fileName);
     if (fd < 0)
     {
-        log_perror("open");
+        logPError("open");
         return;
     }
     memset(buf, 0, BUF_SIZE);
-    sprintf(buf, "%s -> %d", adverts.ads[index].name, adverts.ads[index].latestOffer);
+    sprintf(buf, "%s -> %d\n", adverts.ads[index].name, adverts.ads[index].latestOffer);
     if (write(fd, buf, strlen(buf)) < 0)
-        log_perror("write");
+        logPError("write");
     close(fd);
 }
 
-void sell(int index, fd_set* masterSet)
+void sell(int index)
 {
     int sockFd = adverts.ads[index].sockFd;
     if (sockFd != -1)
     {
-        FD_CLR(sockFd, masterSet);
+        FD_CLR(sockFd, &masterSet);
         close(sockFd);
         adverts.ads[index].sockFd = -1;
     }
     adverts.ads[index].status = SOLD;
     broadcastAdvert(&adverts.ads[index]);
     logSale(index);
-    log_info("Sold %s", adverts.ads[index].name);
+    logInfo("Sold %s", adverts.ads[index].name);
 }
 
-int startNegotiation(int index, fd_set* masterSet, int* maxFd)
+int startNegotiation(int index)
 {
     int sockFd = adverts.ads[index].sockFd;
     if (adverts.ads[index].status == SOLD)
     {
-        log_error("Advertisement is already sold");
+        logError("Advertisement is already sold");
         return -1;
     }
     if (adverts.ads[index].status == NEGOTIATING)
     {
-        log_error("Advertisement is already being negotiated");
+        logError("Advertisement is already being negotiated");
         return -1;
     }
     struct sockaddr_in clientAddr;
@@ -215,37 +218,37 @@ int startNegotiation(int index, fd_set* masterSet, int* maxFd)
     int newSockFd = accept(sockFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
     if (newSockFd < 0)
     {
-        log_perror("accept");
+        logPError("accept");
         return -1;
     }
-    FD_SET(newSockFd, masterSet);
-    if (newSockFd > *maxFd)
-        *maxFd = newSockFd;
-    FD_CLR(sockFd, masterSet);
+    FD_SET(newSockFd, &masterSet);
+    if (newSockFd > maxFd)
+        maxFd = newSockFd;
+    FD_CLR(sockFd, &masterSet);
     close(sockFd);
     adverts.ads[index].sockFd = newSockFd;
     adverts.ads[index].status = NEGOTIATING;
     broadcastAdvert(&adverts.ads[index]);
-    log_info("Negotiation started for %s", adverts.ads[index].name);
+    logInfo("Negotiation started for %s", adverts.ads[index].name);
     return newSockFd;
 }
 
-int endNegotiation(int index, fd_set* masterSet, int* maxFd)
+int endNegotiation(int index)
 {
     int sockFd = adverts.ads[index].sockFd;
     if (adverts.ads[index].status == SOLD)
     {
-        log_error("Advertisement is already sold");
+        logError("Advertisement is already sold");
         return -1;
     }
     if (adverts.ads[index].status == AVAILABLE)
     {
-        log_error("Advertisement is not being negotiated");
+        logError("Advertisement is not being negotiated");
         return -1;
     }
     if (sockFd != -1)
     {
-        FD_CLR(sockFd, masterSet);
+        FD_CLR(sockFd, &masterSet);
         close(sockFd);
     }
     sockFd = getTcpSockFd();
@@ -255,24 +258,24 @@ int endNegotiation(int index, fd_set* masterSet, int* maxFd)
         return -1;
     if (listen(sockFd, 1) < 0)
     {
-        log_perror("listen");
+        logPError("listen");
         close(sockFd);
         return -1;
     }
-    FD_SET(sockFd, masterSet);
-    if (sockFd > *maxFd)
-        *maxFd = sockFd;
+    FD_SET(sockFd, &masterSet);
+    if (sockFd > maxFd)
+        maxFd = sockFd;
     adverts.ads[index].sockFd = sockFd;
     adverts.ads[index].status = AVAILABLE;
     broadcastAdvert(&adverts.ads[index]);
-    log_info("Negotiation ended for %s", adverts.ads[index].name);
+    logInfo("Negotiation ended for %s", adverts.ads[index].name);
     return 0;
 }
 
 void setLatestOffer(int index, int offer)
 {
     adverts.ads[index].latestOffer = offer;
-    log_info("Offer for %s set to %d", adverts.ads[index].name, offer);
+    logInfo("Offer for %s set to %d", adverts.ads[index].name, offer);
 }
 
 void listAdvertisements()
@@ -295,10 +298,10 @@ void getClientOffer(int index)
     int offer;
     if (offerStr == NULL || (offer = atoi(offerStr)) <= 0)
     {
-        log_warn("Invalid offer received from client");
+        logWarn("Invalid offer received from client");
         return;
     }
-    log_info("New offer received for %s", adverts.ads[index].name);
+    logInfo("New offer received for %s", adverts.ads[index].name);
     setLatestOffer(index, offer);
     listAdvertisements();
 }
@@ -308,10 +311,10 @@ void getClientMessage(int index)
     char* message = strtok(NULL, "\n\0");
     if (message == NULL)
     {
-        log_warn("Invalid message received from client");
+        logWarn("Invalid message received from client");
         return;
     }
-    log_info("New message received for %s", adverts.ads[index].name);
+    logInfo("New message received for %s", adverts.ads[index].name);
     char* msg = malloc(strlen(message) + 1);
     strcpy(msg, message);
     memset(buf, 0, BUF_SIZE);
@@ -321,38 +324,38 @@ void getClientMessage(int index)
     write(STDOUT_FILENO, "\n", 1);
 }
 
-void getClientResponse(int sockFd, int index, fd_set* masterSet, int* maxFd)
+void getClientResponse(int sockFd, int index)
 {
     memset(buf, 0, BUF_SIZE);
     int bytes = recv(sockFd, buf, BUF_SIZE, 0);
     if (bytes < 0)
     {
-        log_perror("recv");
+        logPError("recv");
         return;
     }
     if (bytes == 0)
     {
-        log_info("Client disconnected from %s", adverts.ads[index].name);
-        endNegotiation(index, masterSet, maxFd);
+        logInfo("Client disconnected from %s", adverts.ads[index].name);
+        endNegotiation(index);
         return;
     }
-    char* type = strtok(buf, "|");
+    char* type = strtok(buf, MESSAGE_DELIMITER);
     if (type != NULL && strcmp(type, "offer") == 0)
         getClientOffer(index);
     else if (type != NULL && strcmp(type, "msg") == 0)
         getClientMessage(index);
     else
-        log_warn("Invalid message received from client");
+        logWarn("Invalid message received from client");
 }
 
-void addAdvertisement(fd_set* masterSet, int* maxFd)
+void addAdvertisement()
 {
     int port;
     char* name = strtok(NULL, " ");
     char* portStr = strtok(NULL, " \n\0");
     if (name == NULL || portStr == NULL || (port = getPort(portStr)) < 0)
     {
-        log_warn("Invalid advertisement");
+        logWarn("Invalid advertisement");
         return;
     }
     int sockFd = getTcpSockFd();
@@ -362,90 +365,90 @@ void addAdvertisement(fd_set* masterSet, int* maxFd)
         return;
     if (listen(sockFd, 1) < 0)
     {
-        log_perror("listen");
+        logPError("listen");
         close(sockFd);
         return;
     }
-    FD_SET(sockFd, masterSet);
-    if (sockFd > *maxFd)
-        *maxFd = sockFd;
+    FD_SET(sockFd, &masterSet);
+    if (sockFd > maxFd)
+        maxFd = sockFd;
     insertAdvertisement(name, port, sockFd);
-    log_info("Advertisement added: %s (Port %d)", name, port);
+    logInfo("Advertisement added: %s (Port %d)", name, port);
     broadcastAdvert(&adverts.ads[adverts.count - 1]);
     listAdvertisements();
 }
 
-void respondClient(fd_set* masterSet, int* maxFd)
+void respondClient()
 {
     int index = findAdvertisementFromBuf(" ");
     if (index < 0)
         return;
     if (adverts.ads[index].status != NEGOTIATING)
     {
-        log_error("Advertisement is not being negotiated");
+        logError("Advertisement is not being negotiated");
         return;
     }
     char* msg = strtok(NULL, "\n\0");
     if (msg == NULL)
     {
-        log_error("Invalid message");
+        logError("Invalid message");
         return;
     }
     if (strcmp(msg, ACCEPT_OFFER) == 0 || strcmp(msg, REJECT_OFFER) == 0)
     {
-        log_error("Message cannot be 'accept' or 'reject', use commands instead");
+        logError("Message cannot be 'accept' or 'reject', use commands instead");
         return;
     }
     int sockFd = adverts.ads[index].sockFd;
     if (send(sockFd, msg, strlen(msg), 0) < 0)
     {
-        log_perror("send");
-        endNegotiation(index, masterSet, maxFd);
+        logPError("send");
+        endNegotiation(index);
         return;
     }
-    log_info("Message sent to client");
+    logInfo("Message sent to client");
 }
 
-void acceptOffer(fd_set* masterSet, int* maxFd)
+void acceptOffer()
 {
     int index = findAdvertisementFromBuf(" \n\0");
     if (index < 0)
         return;
     if (adverts.ads[index].status != NEGOTIATING)
     {
-        log_error("Advertisement is not being negotiated");
+        logError("Advertisement is not being negotiated");
         return;
     }
     int sockFd = adverts.ads[index].sockFd;
     if (send(sockFd, ACCEPT_OFFER, strlen(ACCEPT_OFFER), 0) < 0)
     {
-        log_perror("send");
-        endNegotiation(index, masterSet, maxFd);
+        logPError("send");
+        endNegotiation(index);
         return;
     }
-    log_info("Offer accepted");
-    sell(index, masterSet);
+    logInfo("Offer accepted");
+    sell(index);
 }
 
-void rejectOffer(fd_set* masterSet, int* maxFd)
+void rejectOffer()
 {
     int index = findAdvertisementFromBuf(" \n\0");
     if (index < 0)
         return;
     if (adverts.ads[index].status != NEGOTIATING)
     {
-        log_error("Advertisement is not being negotiated");
+        logError("Advertisement is not being negotiated");
         return;
     }
     int sockFd = adverts.ads[index].sockFd;
     if (send(sockFd, REJECT_OFFER, strlen(REJECT_OFFER), 0) < 0)
-        log_perror("send");
+        logPError("send");
     else
-        log_info("Offer rejected");
-    endNegotiation(index, masterSet, maxFd);
+        logInfo("Offer rejected");
+    endNegotiation(index);
 }
 
-int readCommand(fd_set* masterSet, int* maxFd)
+int readCommand()
 {
     memset(buf, 0, BUF_SIZE);
     read(STDIN_FILENO, buf, BUF_SIZE);
@@ -453,72 +456,72 @@ int readCommand(fd_set* masterSet, int* maxFd)
     if (command == NULL)
         return 0;
     if (strcmp(command, "add") == 0)
-        addAdvertisement(masterSet, maxFd);
+        addAdvertisement();
     else if (strcmp(command, "help") == 0)
         write(STDOUT_FILENO, HELP_MSG, strlen(HELP_MSG));
     else if (strcmp(command, "list") == 0)
         listAdvertisements();
     else if (strcmp(command, "respond") == 0)
-        respondClient(masterSet, maxFd);
+        respondClient();
     else if (strcmp(command, "accept") == 0)
-        acceptOffer(masterSet, maxFd);
+        acceptOffer();
     else if (strcmp(command, "reject") == 0)
-        rejectOffer(masterSet, maxFd);
+        rejectOffer();
     else if (strcmp(command, "exit") == 0)
         return 1;
     else
-        log_error("Invalid command");
+        logError("Invalid command");
     return 0;
 }
 
-void handleSocketEvent(int sockFd, fd_set* masterSet, int* maxFd)
+void handleSocketEvent(int sockFd)
 {
     int index = findAdvertisementFromSocket(sockFd);
     if (index < 0)
         return;
     if (adverts.ads[index].status == NEGOTIATING)
-        getClientResponse(sockFd, index, masterSet, maxFd);
+        getClientResponse(sockFd, index);
     else if (adverts.ads[index].status == AVAILABLE)
-        startNegotiation(index, masterSet, maxFd);
+        startNegotiation(index);
     else
     {
-        log_warn("Event from invalid socket received, closing socket...");
+        logWarn("Event from invalid socket received, closing socket...");
         close(sockFd);
     }
 }
 
 void runClient()
 {
-    fd_set masterSet, workingSet;
+    fd_set workingSet;
     FD_ZERO(&masterSet);
     FD_ZERO(&workingSet);
     FD_SET(STDIN_FILENO, &masterSet);
-    int maxFd = STDIN_FILENO;
-    log_info("Server started...");
+    maxFd = STDIN_FILENO;
+    logInfo("Server started...");
     while (1)
     {
         workingSet = masterSet;
         if (select(maxFd + 1, &workingSet, NULL, NULL, NULL) < 0)
         {
-            log_perror("select");
+            logPError("select");
             return;
         }
         if (FD_ISSET(STDIN_FILENO, &workingSet))
         {
-            int exit = readCommand(&masterSet, &maxFd);
+            int exit = readCommand();
             if (exit)
                 break;
         }
         else
             for (int i = 1; i <= maxFd; ++i)
                 if (FD_ISSET(i, &workingSet))
-                    handleSocketEvent(i, &masterSet, &maxFd);
+                    handleSocketEvent(i);
     }
 }
 
 int main(int argc, const char* argv[])
 {
-    set_log_level(LOG_INFO);
+    setLogLevel(LOG_INFO);
     setupUser(argc, argv);
     runClient();
     freeResources();

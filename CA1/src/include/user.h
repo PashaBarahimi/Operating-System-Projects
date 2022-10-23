@@ -6,9 +6,10 @@
 #define ADVERT_NAME_LEN 64
 #define NEGOTIATION_TIMEOUT 60
 #define NET_ADDR "127.0.0.1"
-#define BROADCAST_ADDR "192.168.23.255"
+#define BROADCAST_ADDR "192.168.1.255"
 #define ACCEPT_OFFER "accept"
 #define REJECT_OFFER "reject"
+#define MESSAGE_DELIMITER "|"
 
 #define ADVERT_COLOR "\033[1;36m"
 #define RESET_COLOR "\033[0m"
@@ -19,7 +20,7 @@ typedef enum
     AVAILABLE,
     NEGOTIATING,
     SOLD,
-} advertisement_status;
+} advertisementStatus;
 
 extern char buf[BUF_SIZE];
 extern char name[NAME_LEN];

@@ -19,15 +19,15 @@ typedef enum
     LOG_WARN,
     LOG_ERROR,
     NO_LOG,
-} log_level;
+} logLevel;
 
-static log_level l_level = LOG_INFO;
+static logLevel lLevel = LOG_INFO;
 
-void set_log_level(log_level level);
+void setLogLevel(logLevel level);
 
-void log_info(const char* fmt, ...);
-void log_warn(const char* fmt, ...);
-void log_error(const char* fmt, ...);
-void log_perror(const char* fmt, ...);
+void logInfo(const char* fmt, ...);
+void logWarn(const char* fmt, ...);
+void logError(const char* fmt, ...);
+void logPError(const char* fmt, ...);
 
 #endif
