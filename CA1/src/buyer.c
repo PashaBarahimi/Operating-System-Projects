@@ -14,7 +14,7 @@
                  "\thelp - show this message\n" \
                  "\tlist - show the list of advertisements\n" \
                  "\tnegotiate (--id <id>)|(--name <name>) - start negotiation with advertiser\n" \
-                 "\tsend <message> - send message to asdvertiser\n" \
+                 "\tsend <message> - send message to advertiser\n" \
                  "\toffer <price> - send offer to advertiser\n" \
                  "\tend - end negotiation\n" \
                  "\texit - exit the program\n"
