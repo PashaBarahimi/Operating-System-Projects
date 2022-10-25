@@ -1,5 +1,5 @@
 CC     = gcc
-CFLAGS = -g
+CFLAGS =
 
 PATH_SRC = ./src
 PATH_INC = $(PATH_SRC)/include
