@@ -38,7 +38,7 @@ struct advertisements
 } adverts = { NULL, 0, 0 };
 
 fd_set masterSet;
-int maxFd;
+int maxFd, negotiationCount = 0;
 
 
 void freeResources()
@@ -229,6 +229,7 @@ int startNegotiation(int index)
     close(sockFd);
     adverts.ads[index].sockFd = newSockFd;
     adverts.ads[index].status = NEGOTIATING;
+    ++negotiationCount;
     broadcastAdvert(&adverts.ads[index]);
     logInfo("Negotiation started for %s", adverts.ads[index].name);
     return newSockFd;
@@ -268,6 +269,7 @@ int endNegotiation(int index)
         maxFd = sockFd;
     adverts.ads[index].sockFd = sockFd;
     adverts.ads[index].status = AVAILABLE;
+    --negotiationCount;
     broadcastAdvert(&adverts.ads[index]);
     logInfo("Negotiation ended for %s", adverts.ads[index].name);
     return 0;
@@ -353,6 +355,11 @@ void getClientResponse(int sockFd, int index)
 
 void addAdvertisement()
 {
+    if (negotiationCount != 0)
+    {
+        logError("Cannot add advertisement while negotiation is in progress");
+        return;
+    }
     int port;
     char* name = strtok(NULL, " ");
     char* portStr = strtok(NULL, " \n\0");
