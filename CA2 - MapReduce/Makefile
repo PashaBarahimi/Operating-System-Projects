@@ -1,13 +1,13 @@
-CXX      =  g++
-CXXFLAGS += -g
-CC       =  $(CXX) $(CXXFLAGS)
-CPPFLAGS += -std=c++17
-
 PATH_SRC  = ./src
 PATH_INC  = $(PATH_SRC)/include
 PATH_OBJ  = ./obj
 PATH_BIN  = ./bin
 PATH_FIFO = ./fifo
+
+CXX      =  g++
+CXXFLAGS += -g
+CC       =  $(CXX) $(CXXFLAGS)
+CPPFLAGS += -std=c++17 -I$(PATH_INC)
 
 OUT_MAIN = GenreCounter.out
 
