@@ -2,15 +2,15 @@ PATH_SRC  = ./src
 PATH_INC  = $(PATH_SRC)/include
 PATH_OBJ  = ./obj
 PATH_BIN  = ./bin
-PATH_FIFO = ./fifo
+PATH_FIFO = ./.fifo
 
 CXX      =  g++
 CXXFLAGS += -g
 CPPFLAGS += -std=c++17 -I$(PATH_INC)
 
 OUT_MAIN = GenreCounter.out
-OUT_MAP  = map_worker.out
-OUT_RED  = red_worker.out
+OUT_MAP  = map_worker
+OUT_RED  = red_worker
 
 ALL_OUT  = $(OUT_MAIN) $(OUT_MAP) $(OUT_RED)
 

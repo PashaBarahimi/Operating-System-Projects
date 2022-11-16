@@ -41,13 +41,13 @@ bool processFile(WorkerData &data)
     std::string line;
     while (std::getline(file, line))
     {
-        std::vector<std::string> fields = split(line);
+        std::vector<std::string> fields = split(line, ',');
         if (fields.size() < 2)
         {
             log::warn("Invalid line '%s' in file '%s'", line.c_str(), data.filePath.c_str());
             continue;
         }
-        std::string genre = fields[2];
+        std::string genre = fields[1];
         if (data.genres.find(genre) != data.genres.end())
             ++data.genres[genre];
         else
@@ -67,14 +67,14 @@ bool sendDataToReducer(WorkerData &data)
             log::perror("open");
             return false;
         }
-        std::string count = std::to_string(genre.second);
+        std::string count = std::to_string(genre.second) + '\n';
         if (write(fd, count.c_str(), count.size()) == -1)
         {
             log::perror("write");
             return false;
         }
         close(fd);
-        log::info("Sent %s to %s", count.c_str(), fifoName.c_str());
+        log::info("Sent %d to %s", genre.second, fifoName.c_str());
     }
     return true;
 }

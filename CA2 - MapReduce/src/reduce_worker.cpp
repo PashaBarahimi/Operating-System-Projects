@@ -7,8 +7,6 @@
 #include "defs.hpp"
 #include "log.hpp"
 
-constexpr int MAX_DIGIT_COUNT = 18;
-
 typedef struct
 {
     std::string genre;
@@ -34,10 +32,10 @@ bool openFifoFiles(WorkerData &data)
 {
     for (auto &fifoFile : data.fifoFiles)
     {
-        fifoFile.second = open(fifoFile.first.c_str(), O_WRONLY);
+        fifoFile.second = open(fifoFile.first.c_str(), O_RDONLY | O_NONBLOCK);
         if (fifoFile.second == -1)
         {
-            log::error("Could not open fifo file '%s'", fifoFile.first.c_str());
+            log::perror("open");
             return false;
         }
     }
@@ -46,7 +44,7 @@ bool openFifoFiles(WorkerData &data)
 
 long long readCount(int fd)
 {
-    char buffer[MAX_DIGIT_COUNT + 1];
+    char buffer[MAX_DIGIT_COUNT + 1] = {0};
     int count = read(fd, buffer, MAX_DIGIT_COUNT);
     if (count == -1)
     {
@@ -64,7 +62,8 @@ long long getGenreCount(WorkerData &data)
     FD_ZERO(&master_set);
     for (const auto &fifoFile : data.fifoFiles)
         FD_SET(fifoFile.second, &master_set);
-    while (!data.fifoFiles.empty())
+    int waitingFilesCount = data.fifoFiles.size();
+    while (waitingFilesCount)
     {
         working_set = master_set;
         int ready = select(FD_SETSIZE, &working_set, NULL, NULL, NULL);
@@ -80,12 +79,11 @@ long long getGenreCount(WorkerData &data)
                 if (partialCount == -1)
                     return -1;
                 count += partialCount;
+                log::info("Read %lld from '%s'", partialCount, fifoFile.first.c_str());
                 close(fifoFile.second);
                 FD_CLR(fifoFile.second, &master_set);
-                if (unlink(fifoFile.first.c_str()) == -1)
-                    log::perror("unlink");
-                data.fifoFiles.erase(fifoFile.first);
-                log::info("Read %lld from '%s'", partialCount, fifoFile.first.c_str());
+                // data.fifoFiles.erase(fifoFile.first);
+                --waitingFilesCount;
                 if (--ready == 0)
                     break;
             }

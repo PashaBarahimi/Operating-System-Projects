@@ -108,7 +108,7 @@ pid_t runWorker(const char *worker, int *pipefd)
         close(pipefd[1]);
         dup2(pipefd[0], STDIN_FILENO);
         close(pipefd[0]);
-        execl(worker, worker, NULL);
+        execl(worker, worker, nullptr);
         log::perror("execl");
         exit(EXIT_FAILURE);
     }
@@ -119,7 +119,7 @@ pid_t runWorker(const char *worker, int *pipefd)
 bool sendDataToMapWorker(const std::filesystem::directory_entry &lib, const std::vector<std::string> &genres, int fd)
 {
     std::ostringstream ss;
-    ss << extractNumber(lib.path().filename()) << " " << lib.path() << std::endl;
+    ss << extractNumber(lib.path().filename()) << " " << lib.path().string() << std::endl;
     ss << genres.size() << std::endl;
     for (const auto &genre : genres)
         ss << genre << std::endl;
@@ -217,9 +217,14 @@ void waitForWorkers(const std::vector<pid_t> &pids)
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status))
-            log::info("Worker with pid %d exited with status %d", pid, WEXITSTATUS(status));
+        {
+            if (WEXITSTATUS(status) != EXIT_SUCCESS)
+                log::error("Worker with pid %d exited with status %d", pid, WEXITSTATUS(status));
+            else
+                log::info("Worker with pid %d exited with status %d", pid, WEXITSTATUS(status));
+        }
         else if (WIFSIGNALED(status))
-            log::info("Worker with pid %d killed by signal %d", pid, WTERMSIG(status));
+            log::error("Worker with pid %d killed by signal %d", pid, WTERMSIG(status));
     }
 }
 
