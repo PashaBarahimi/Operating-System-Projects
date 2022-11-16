@@ -6,7 +6,6 @@ PATH_FIFO = ./fifo
 
 CXX      =  g++
 CXXFLAGS += -g
-CC       =  $(CXX) $(CXXFLAGS)
 CPPFLAGS += -std=c++17 -I$(PATH_INC)
 
 OUT_MAIN = GenreCounter.out
@@ -16,17 +15,20 @@ OUT_MAIN = GenreCounter.out
 vpath %.cpp $(PATH_SRC)
 vpath %.hpp $(PATH_INC)
 
-OBJS_MAIN = log.o
+OBJS_MAIN = main.o log.o
 
 # ---------------------------------------------------------------------------
 
 all: $(PATH_OBJ) $(PATH_BIN) $(PATH_FIFO) $(PATH_BIN)/$(OUT_MAIN) copy_main
 
 $(PATH_BIN)/$(OUT_MAIN): $(addprefix $(PATH_OBJ)/, $(OBJS_MAIN))
-	$(CC) $(CPPFLAGS) -o $@ $^
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
 
 $(PATH_OBJ)/log.o: log.cpp log.hpp
-	$(CC) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(PATH_OBJ)/main.o: main.cpp log.hpp defs.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 # ---------------------------------------------------------------------------
 
