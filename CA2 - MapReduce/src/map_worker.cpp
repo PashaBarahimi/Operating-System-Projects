@@ -74,6 +74,7 @@ bool sendDataToReducer(WorkerData &data)
             return false;
         }
         close(fd);
+        log::info("Sent %s to %s", count.c_str(), fifoName.c_str());
     }
     return true;
 }

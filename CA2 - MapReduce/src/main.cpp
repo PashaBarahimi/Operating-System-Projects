@@ -62,7 +62,7 @@ bool getLibraries(const std::string &path, std::vector<std::filesystem::director
             libraries.push_back(entry);
             log::info("Found library file '%s'", entry.path().filename().c_str());
         }
-        else
+        else if (entry.path().filename() != GENRE_FILE)
             log::warn("Ignoring file '%s'", entry.path().filename().c_str());
     }
     if (libraries.empty())
