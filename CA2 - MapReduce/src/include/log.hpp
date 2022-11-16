@@ -15,16 +15,14 @@ public:
         none
     };
 
-    log(level l = level::info);
-
-    void setLevel(level l);
-    void logInfo(const std::string &fmt, ...) const;
-    void logWarn(const std::string &fmt, ...) const;
-    void logError(const std::string &fmt, ...) const;
-    void logPError(const std::string &fmt, ...) const;
+    static void setLevel(level l);
+    static void info(const std::string &fmt, ...);
+    static void warn(const std::string &fmt, ...);
+    static void error(const std::string &fmt, ...);
+    static void perror(const std::string &fmt, ...);
 private:
-    void logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr) const;
-    level lLevel;
+    static void logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr);
+    inline static level lLevel = level::info;
 };
 
 #endif

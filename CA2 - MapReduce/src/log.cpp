@@ -8,15 +8,13 @@ const std::string INFO  = "\033[32m[INFO]\033[0m";
 const std::string WARN  = "\033[33m[WARN]\033[0m";
 const std::string ERROR = "\033[31m[ERRO]\033[0m";
 
-log::log(log::level l) : lLevel(l) { }
-
 void log::setLevel(log::level l)
 {
     if (l >= log::level::info && l <= log::level::none)
         lLevel = l;
 }
 
-void log::logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr = "") const
+void log::logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr = "")
 {
     std::cout << level << " ";
     vprintf(fmt.c_str(), args);
@@ -25,7 +23,7 @@ void log::logMsg(const std::string &level, const std::string &fmt, va_list &args
     std::cout << std::endl;
 }
 
-void log::logInfo(const std::string &fmt, ...) const
+void log::info(const std::string &fmt, ...)
 {
     if (lLevel <= log::level::info)
     {
@@ -36,7 +34,7 @@ void log::logInfo(const std::string &fmt, ...) const
     }
 }
 
-void log::logWarn(const std::string &fmt, ...) const
+void log::warn(const std::string &fmt, ...)
 {
     if (lLevel <= log::level::warn)
     {
@@ -47,7 +45,7 @@ void log::logWarn(const std::string &fmt, ...) const
     }
 }
 
-void log::logError(const std::string &fmt, ...) const
+void log::error(const std::string &fmt, ...)
 {
     if (lLevel <= log::level::error)
     {
@@ -58,7 +56,7 @@ void log::logError(const std::string &fmt, ...) const
     }
 }
 
-void log::logPError(const std::string &fmt, ...) const
+void log::perror(const std::string &fmt, ...)
 {
     if (lLevel <= log::level::error)
     {
