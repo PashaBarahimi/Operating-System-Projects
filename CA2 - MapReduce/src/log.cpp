@@ -12,7 +12,7 @@ log::log(log::level l) : lLevel(l) { }
 
 void log::setLevel(log::level l)
 {
-    if (l >= log::level::INFO && l <= log::level::NONE)
+    if (l >= log::level::info && l <= log::level::none)
         lLevel = l;
 }
 
@@ -27,7 +27,7 @@ void log::logMsg(const std::string &level, const std::string &fmt, va_list &args
 
 void log::logInfo(const std::string &fmt, ...) const
 {
-    if (lLevel <= log::level::INFO)
+    if (lLevel <= log::level::info)
     {
         va_list args;
         va_start(args, fmt);
@@ -38,7 +38,7 @@ void log::logInfo(const std::string &fmt, ...) const
 
 void log::logWarn(const std::string &fmt, ...) const
 {
-    if (lLevel <= log::level::WARN)
+    if (lLevel <= log::level::warn)
     {
         va_list args;
         va_start(args, fmt);
@@ -49,7 +49,7 @@ void log::logWarn(const std::string &fmt, ...) const
 
 void log::logError(const std::string &fmt, ...) const
 {
-    if (lLevel <= log::level::ERROR)
+    if (lLevel <= log::level::error)
     {
         va_list args;
         va_start(args, fmt);
@@ -60,7 +60,7 @@ void log::logError(const std::string &fmt, ...) const
 
 void log::logPError(const std::string &fmt, ...) const
 {
-    if (lLevel <= log::level::ERROR)
+    if (lLevel <= log::level::error)
     {
         va_list args;
         va_start(args, fmt);

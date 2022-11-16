@@ -9,13 +9,13 @@ class log
 public:
     enum class level
     {
-        INFO,
-        WARN,
-        ERROR,
-        NONE
+        info,
+        warn,
+        error,
+        none
     };
 
-    log(level l = level::INFO);
+    log(level l = level::info);
 
     void setLevel(level l);
     void logInfo(const std::string &fmt, ...) const;
