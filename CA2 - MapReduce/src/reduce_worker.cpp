@@ -82,7 +82,6 @@ long long getGenreCount(WorkerData &data)
                 log::info("Read %lld from '%s'", partialCount, fifoFile.first.c_str());
                 close(fifoFile.second);
                 FD_CLR(fifoFile.second, &master_set);
-                // data.fifoFiles.erase(fifoFile.first);
                 --waitingFilesCount;
                 if (--ready == 0)
                     break;
