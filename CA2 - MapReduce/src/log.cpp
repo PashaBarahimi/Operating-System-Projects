@@ -16,7 +16,7 @@ void log::setLevel(log::level l)
         lLevel = l;
 }
 
-void log::logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr = "")
+void log::logMsg(const std::string &level, const std::string &fmt, va_list &args, const std::string &perr = "") const
 {
     std::cout << level << " ";
     vprintf(fmt.c_str(), args);
@@ -25,7 +25,7 @@ void log::logMsg(const std::string &level, const std::string &fmt, va_list &args
     std::cout << std::endl;
 }
 
-void log::logInfo(const std::string &fmt, ...)
+void log::logInfo(const std::string &fmt, ...) const
 {
     if (lLevel <= log::level::INFO)
     {
@@ -36,7 +36,7 @@ void log::logInfo(const std::string &fmt, ...)
     }
 }
 
-void log::logWarn(const std::string &fmt, ...)
+void log::logWarn(const std::string &fmt, ...) const
 {
     if (lLevel <= log::level::WARN)
     {
@@ -47,7 +47,7 @@ void log::logWarn(const std::string &fmt, ...)
     }
 }
 
-void log::logError(const std::string &fmt, ...)
+void log::logError(const std::string &fmt, ...) const
 {
     if (lLevel <= log::level::ERROR)
     {
@@ -58,7 +58,7 @@ void log::logError(const std::string &fmt, ...)
     }
 }
 
-void log::logPError(const std::string &fmt, ...)
+void log::logPError(const std::string &fmt, ...) const
 {
     if (lLevel <= log::level::ERROR)
     {
