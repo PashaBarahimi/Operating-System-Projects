@@ -7,12 +7,12 @@
 #include "defs.hpp"
 #include "log.hpp"
 
-const std::string libRegex = "^part([0-9]+)\\.csv$";
-const std::string genreFile = "genres.csv";
+const std::string LIB_REGEX  = "^part([0-9]+)\\.csv$";
+const std::string GENRE_FILE = "genres.csv";
 
 bool isLibrary(const std::string &path)
 {
-    std::regex regex(libRegex);
+    std::regex regex(LIB_REGEX);
     return std::regex_match(path, regex);
 }
 
@@ -36,33 +36,43 @@ bool getLibraries(const std::string &path, std::vector<std::filesystem::director
     if (!checkLibPath(path))
         return false;
 
-    bool genresExist = false;
     for (const auto &entry : std::filesystem::directory_iterator(path))
     {
         if (!entry.is_regular_file())
             continue;
-        if (entry.path().filename() == genreFile)
-        {
-            genresExist = true;
-            log::info("Found genres file '%s'", entry.path().filename().c_str());
-            continue;
-        }
         if (isLibrary(entry.path().filename()))
         {
             libraries.push_back(entry);
             log::info("Found library file '%s'", entry.path().filename().c_str());
         }
     }
-    if (!genresExist)
-    {
-        log::error("Genres file '%s' does not exist in library", genreFile.c_str());
-        return false;
-    }
     if (libraries.empty())
     {
         log::error("No library files found in library");
         return false;
     }
+    return true;
+}
+
+bool getGenres(const std::string &path, std::vector<std::string> &genres)
+{
+    std::string genrePath = path + "/" + GENRE_FILE;
+    std::ifstream file(genrePath);
+    if (!file.is_open())
+    {
+        log::error("Failed to open genres file '%s'", genrePath.c_str());
+        return false;
+    }
+
+    std::string line;
+    std::getline(file, line);
+    genres = split(line, ',');
+    if (genres.empty())
+    {
+        log::error("No genres found in genres file '%s'", genrePath.c_str());
+        return false;
+    }
+    log::info("Found %d genres", genres.size());
     return true;
 }
 
@@ -77,7 +87,10 @@ int main(int argc, char *argv[])
     }
 
     std::vector<std::filesystem::directory_entry> libraries;
+    std::vector<std::string> genres;
     if (!getLibraries(argv[1], libraries))
+        return 1;
+    if (!getGenres(argv[1], genres))
         return 1;
 
     return 0;

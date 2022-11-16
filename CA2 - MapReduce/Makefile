@@ -15,7 +15,7 @@ OUT_MAIN = GenreCounter.out
 vpath %.cpp $(PATH_SRC)
 vpath %.hpp $(PATH_INC)
 
-OBJS_MAIN = main.o log.o
+OBJS_MAIN = main.o log.o utils.o
 
 # ---------------------------------------------------------------------------
 
@@ -28,6 +28,9 @@ $(PATH_OBJ)/log.o: log.cpp log.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(PATH_OBJ)/main.o: main.cpp log.hpp defs.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(PATH_OBJ)/utils.o: utils.cpp defs.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 # ---------------------------------------------------------------------------
