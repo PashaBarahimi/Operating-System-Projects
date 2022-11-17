@@ -4,9 +4,11 @@
 #include <iostream>
 #include <cstring>
 
-const std::string INFO  = "\033[32m[INFO]\033[0m";
-const std::string WARN  = "\033[33m[WARN]\033[0m";
-const std::string ERROR = "\033[31m[ERRO]\033[0m";
+#include "colors.hpp"
+
+const std::string INFO  = Color::Green  + "[INFO]"  + Color::Reset;
+const std::string WARN  = Color::Yellow + "[WARN]"  + Color::Reset;
+const std::string ERROR = Color::Red    + "[ERRO]"  + Color::Reset;
 
 void log::setLevel(log::level l)
 {

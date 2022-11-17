@@ -45,7 +45,7 @@ $(PATH_OBJ)/map_worker.o: map_worker.cpp log.hpp defs.hpp
 $(PATH_OBJ)/red_worker.o: reduce_worker.cpp log.hpp defs.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-$(PATH_OBJ)/log.o: log.cpp log.hpp
+$(PATH_OBJ)/log.o: log.cpp log.hpp colors.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(PATH_OBJ)/utils.o: utils.cpp defs.hpp
