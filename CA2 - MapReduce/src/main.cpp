@@ -148,6 +148,8 @@ bool runMapWorkers(const std::vector<std::filesystem::directory_entry> &librarie
         pids.push_back(pid);
         if (!sendDataToMapWorker(lib, genres, pipefd[1]))
             return false;
+        if (close(pipefd[1]) == -1)
+            log::perror("close");
         log::info("Started map worker for library '%s' with pid %d", lib.path().filename().c_str(), pid);
     }
     return true;
@@ -185,6 +187,8 @@ bool runRedWorkers(const std::vector<std::vector<std::string>> &fifoFiles, const
         pids.push_back(pid);
         if (!sendDataToRedWorker(fifoFiles[i], genres[i], pipefd[1]))
             return false;
+        if (close(pipefd[1]) == -1)
+            log::perror("close");
         log::info("Started reduce worker for genre '%s' with pid %d", genres[i].c_str(), pid);
     }
     return true;

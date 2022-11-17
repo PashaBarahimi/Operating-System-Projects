@@ -16,13 +16,13 @@ typedef struct
 WorkerData getData()
 {
     WorkerData data;
-    std::cin >> data.genre;
+    std::getline(std::cin, data.genre);
     int n;
     std::cin >> n;
     for (int i = 0; i < n; i++)
     {
         std::string fifoFile;
-        std::cin >> fifoFile;
+        std::getline(std::cin >> std::ws, fifoFile);
         data.fifoFiles[fifoFile] = -1;
     }
     return data;

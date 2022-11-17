@@ -24,7 +24,7 @@ WorkerData getData()
     for (int i = 0; i < n; i++)
     {
         std::string genre;
-        std::cin >> genre;
+        std::getline(std::cin >> std::ws, genre);
         data.genres[genre] = 0;
     }
     return data;
