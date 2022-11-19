@@ -47,11 +47,14 @@ bool processFile(WorkerData &data)
             log::warn("Invalid line '%s' in file '%s'", line.c_str(), data.filePath.c_str());
             continue;
         }
-        std::string genre = fields[1];
-        if (data.genres.find(genre) != data.genres.end())
-            ++data.genres[genre];
-        else
-            log::warn("Invalid genre '%s' in file '%s'", genre.c_str(), data.filePath.c_str());
+        for (int i = 1; i < fields.size(); i++)
+        {
+            std::string genre = fields[i];
+            if (data.genres.find(genre) != data.genres.end())
+                ++data.genres[genre];
+            else
+                log::warn("Invalid genre '%s' in file '%s'", genre.c_str(), data.filePath.c_str());
+        }
     }
     return true;
 }
