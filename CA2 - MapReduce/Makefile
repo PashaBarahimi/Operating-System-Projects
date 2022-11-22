@@ -5,7 +5,7 @@ PATH_BIN  = ./bin
 PATH_FIFO = ./.fifo
 
 CXX      =  g++
-CXXFLAGS += -g
+CXXFLAGS +=
 CPPFLAGS += -std=c++17 -I$(PATH_INC)
 
 OUT_MAIN = GenreCounter.out
@@ -63,7 +63,7 @@ copy_main:
 	cp $(PATH_BIN)/$(OUT_MAIN) .
 
 run:
-	./$(OUT_MAIN)
+	./$(OUT_MAIN) $(ARGS)
 
 clean:
 	rm -rf $(PATH_OBJ) $(PATH_BIN) $(PATH_FIFO) $(OUT_MAIN) > /dev/null 2>&1
