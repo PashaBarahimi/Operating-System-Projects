@@ -4,7 +4,7 @@
 #include "bmp24.hpp"
 #include "filter.hpp"
 
-constexpr int TEST_ITERATIONS = 100;
+constexpr int TEST_ITERATIONS = 1;
 const std::string OUTPUT_FILE = "output.bmp";
 
 int main(int argc, char* argv[])
@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
             result.save(OUTPUT_FILE);
         }
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Average time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
+        std::cout << "Executation Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
     }
     catch (const std::exception& e)
     {
