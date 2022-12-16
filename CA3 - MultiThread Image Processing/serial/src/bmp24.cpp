@@ -32,6 +32,21 @@ BMP24::~BMP24()
     delete[] data_;
 }
 
+BMP24 BMP24::operator=(const BMP24& other)
+{
+    if (this != &other)
+    {
+        delete[] data_;
+        width_ = other.width_;
+        height_ = other.height_;
+        header_ = other.header_;
+        infoHeader_ = other.infoHeader_;
+        data_ = new Pixel[width_ * height_];
+        std::copy(other.data_, other.data_ + width_ * height_, data_);
+    }
+    return *this;
+}
+
 void BMP24::load(std::ifstream& file)
 {
     file.read(reinterpret_cast<char*>(&header_), sizeof(BMPHeader));

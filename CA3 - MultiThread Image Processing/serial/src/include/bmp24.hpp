@@ -54,6 +54,7 @@ public:
     BMP24(std::ifstream& file);
     BMP24(const BMP24& other);
     ~BMP24();
+    BMP24 operator=(const BMP24& other);
     void save(const std::string& filename);
     void save(std::ofstream& file);
     Pixel& operator()(int r, int c);
