@@ -16,13 +16,13 @@ int main(int argc, char* argv[])
 
     try
     {
-        img::BMP24 bmp(argv[1]);
         auto start = std::chrono::high_resolution_clock::now();
+        img::BMP24 bmp(argv[1]);
         img::BMP24 result = img::flipHorizontal(bmp);
         result = img::rasterize(result);
         result = img::diamond(result);
-        auto end = std::chrono::high_resolution_clock::now();
         result.save(OUTPUT_FILE);
+        auto end = std::chrono::high_resolution_clock::now();
         std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
     }
     catch (const std::exception& e)
