@@ -156,7 +156,7 @@ namespace img
         return convolution(bmp, kernel);
     }
 
-    BMP24 rasterize(const BMP24& bmp)
+    BMP24 emboss(const BMP24& bmp)
     {
         std::vector<std::vector<double>> kernel = {
             { -2, -1, 0 },

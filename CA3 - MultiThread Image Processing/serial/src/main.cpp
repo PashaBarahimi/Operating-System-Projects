@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         {
             img::BMP24 bmp(argv[1]);
             img::BMP24 result = img::flipHorizontal(bmp);
-            result = img::rasterize(result);
+            result = img::emboss(result);
             result = img::diamond(result);
             result.save(OUTPUT_FILE);
         }
