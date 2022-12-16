@@ -53,6 +53,7 @@ public:
     BMP24(const std::string& filename);
     BMP24(std::ifstream& file);
     BMP24(const BMP24& other);
+    BMP24(int width, int height);
     ~BMP24();
     BMP24 operator=(const BMP24& other);
     void save(const std::string& filename);
@@ -66,6 +67,7 @@ private:
     void load(std::ifstream& file);
     void loadData(std::ifstream& file);
     void write(std::ofstream& file);
+    void setHeader();
     int width_;
     int height_;
     Pixel* data_;

@@ -27,6 +27,15 @@ BMP24::BMP24(const BMP24& other)
     std::copy(other.data_, other.data_ + width_ * height_, data_);
 }
 
+BMP24::BMP24(int width, int height)
+{
+    width_ = width;
+    height_ = height;
+    data_ = new Pixel[width_ * height_];
+    std::fill(data_, data_ + width_ * height_, Pixel{});
+    setHeader();
+}
+
 BMP24::~BMP24()
 {
     delete[] data_;
@@ -92,6 +101,24 @@ void BMP24::save(std::ofstream& file)
         file.write(reinterpret_cast<char*>(data_ + y * width_), width_ * sizeof(Pixel));
         file.seekp(padding, std::ios::cur);
     }
+}
+
+void BMP24::setHeader()
+{
+    header_.signature = BMP_SIGNATURE;
+    header_.reserved = 0;
+    header_.dataOffset = sizeof(BMPHeader) + sizeof(BMPInfoHeader);
+    infoHeader_.headerSize = sizeof(BMPInfoHeader);
+    infoHeader_.width = width_;
+    infoHeader_.height = height_;
+    infoHeader_.planes = 1;
+    infoHeader_.bitsPerPixel = 24;
+    infoHeader_.compression = 0;
+    infoHeader_.imageSize = 0;
+    infoHeader_.xPixelsPerMeter = 0;
+    infoHeader_.yPixelsPerMeter = 0;
+    infoHeader_.colorsUsed = 0;
+    infoHeader_.colorsImportant = 0;
 }
 
 Pixel& BMP24::operator()(int r, int c)
