@@ -4,6 +4,7 @@
 #include "bmp24.hpp"
 #include "filter.hpp"
 
+constexpr int TEST_ITERATIONS = 100;
 const std::string OUTPUT_FILE = "output.bmp";
 
 int main(int argc, char* argv[])
@@ -17,13 +18,16 @@ int main(int argc, char* argv[])
     try
     {
         auto start = std::chrono::high_resolution_clock::now();
-        img::BMP24 bmp(argv[1]);
-        img::BMP24 result = img::flipHorizontal(bmp);
-        result = img::rasterize(result);
-        result = img::diamond(result);
-        result.save(OUTPUT_FILE);
+        for (int i = 0; i < TEST_ITERATIONS; ++i)
+        {
+            img::BMP24 bmp(argv[1]);
+            img::BMP24 result = img::flipHorizontal(bmp);
+            result = img::rasterize(result);
+            result = img::diamond(result);
+            result.save(OUTPUT_FILE);
+        }
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        std::cout << "Average time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
     }
     catch (const std::exception& e)
     {
