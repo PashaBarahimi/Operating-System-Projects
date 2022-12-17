@@ -4,34 +4,30 @@
 
 namespace img::filter
 {
-    BMP24 flipHorizontal(const BMP24& bmp)
+    void flipHorizontal(BMP24& bmp)
     {
-        BMP24 result(bmp);
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width() / 2; ++j)
-                std::swap(result(i, j), result(i, bmp.width() - j - 1));
-        return result;
+                std::swap(bmp(i, j), bmp(i, bmp.width() - j - 1));
     }
 
-    BMP24 flipVertical(const BMP24& bmp)
+    void flipVertical(BMP24& bmp)
     {
-        BMP24 result(bmp);
         for (int i = 0; i < bmp.height() / 2; ++i)
             for (int j = 0; j < bmp.width(); ++j)
-                std::swap(result(i, j), result(bmp.height() - i - 1, j));
-        return result;
+                std::swap(bmp(i, j), bmp(bmp.height() - i - 1, j));
     }
 
-    BMP24 flipDiagonal(const BMP24& bmp)
+    void flipDiagonal(BMP24& bmp)
     {
         BMP24 result(bmp.height(), bmp.width());
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width(); ++j)
                 result(j, i) = bmp(i, j);
-        return result;
+        bmp = result;
     }
 
-    BMP24 rotate(const BMP24& bmp, Rotation rotation)
+    void rotate(BMP24& bmp, Rotation rotation)
     {
         BMP24 result(bmp.height(), bmp.width());
         for (int i = 0; i < bmp.height(); ++i)
@@ -40,81 +36,74 @@ namespace img::filter
                     result(j, bmp.height() - i - 1) = bmp(i, j);
                 else
                     result(bmp.width() - j - 1, i) = bmp(i, j);
-        return result;
+        bmp = result;
     }
 
-    BMP24 invert(const BMP24& bmp)
+    void invert(BMP24& bmp)
     {
-        BMP24 result(bmp);
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width(); ++j)
             {
-                result(i, j).red = 255 - result(i, j).red;
-                result(i, j).green = 255 - result(i, j).green;
-                result(i, j).blue = 255 - result(i, j).blue;
+                bmp(i, j).red = 255 - bmp(i, j).red;
+                bmp(i, j).green = 255 - bmp(i, j).green;
+                bmp(i, j).blue = 255 - bmp(i, j).blue;
             }
-        return result;
     }
 
-    BMP24 grayscale(const BMP24& bmp)
+    void grayscale(BMP24& bmp)
     {
-        BMP24 result(bmp);
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width(); ++j)
             {
-                int gray = (result(i, j).red + result(i, j).green + result(i, j).blue) / 3;
-                result(i, j).red = gray;
-                result(i, j).green = gray;
-                result(i, j).blue = gray;
+                int gray = (bmp(i, j).red + bmp(i, j).green + bmp(i, j).blue) / 3;
+                bmp(i, j).red = gray;
+                bmp(i, j).green = gray;
+                bmp(i, j).blue = gray;
             }
-        return result;
     }
 
-    BMP24 binarize(const BMP24& bmp, int threshold)
+    void binarize(BMP24& bmp, int threshold)
     {
-        BMP24 result = grayscale(bmp);
+        grayscale(bmp);
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width(); ++j)
             {
-                if (result(i, j).red < threshold)
+                if (bmp(i, j).red < threshold)
                 {
-                    result(i, j).red = 0;
-                    result(i, j).green = 0;
-                    result(i, j).blue = 0;
+                    bmp(i, j).red = 0;
+                    bmp(i, j).green = 0;
+                    bmp(i, j).blue = 0;
                 }
                 else
                 {
-                    result(i, j).red = 255;
-                    result(i, j).green = 255;
-                    result(i, j).blue = 255;
+                    bmp(i, j).red = 255;
+                    bmp(i, j).green = 255;
+                    bmp(i, j).blue = 255;
                 }
             }
-        return result;
     }
 
-    BMP24 sepia(const BMP24& bmp)
+    void sepia(BMP24& bmp)
     {
-        BMP24 result(bmp);
         for (int i = 0; i < bmp.height(); ++i)
             for (int j = 0; j < bmp.width(); ++j)
             {
-                int red = result(i, j).red;
-                int green = result(i, j).green;
-                int blue = result(i, j).blue;
-                result(i, j).red = std::min(255, (int)(red * 0.393 + green * 0.769 + blue * 0.189));
-                result(i, j).green = std::min(255, (int)(red * 0.349 + green * 0.686 + blue * 0.168));
-                result(i, j).blue = std::min(255, (int)(red * 0.272 + green * 0.534 + blue * 0.131));
+                int red = bmp(i, j).red;
+                int green = bmp(i, j).green;
+                int blue = bmp(i, j).blue;
+                bmp(i, j).red = std::min(255, (int)(red * 0.393 + green * 0.769 + blue * 0.189));
+                bmp(i, j).green = std::min(255, (int)(red * 0.349 + green * 0.686 + blue * 0.168));
+                bmp(i, j).blue = std::min(255, (int)(red * 0.272 + green * 0.534 + blue * 0.131));
             }
-        return result;
     }
 
-    BMP24 blur(const BMP24& bmp)
+    void blur(BMP24& bmp)
     {
         std::vector<std::vector<double>> kernel = {
             { 1.0 / 16, 2.0 / 16, 1.0 / 16 },
             { 2.0 / 16, 4.0 / 16, 2.0 / 16 },
             { 1.0 / 16, 2.0 / 16, 1.0 / 16 } };
-        return convolution(bmp, kernel);
+        convolution(bmp, kernel);
     }
 
     void drawLine(BMP24& bmp, int x1, int y1, int x2, int y2, const Pixel& color)
@@ -134,47 +123,45 @@ namespace img::filter
         }
     }
 
-    BMP24 diamond(const BMP24& bmp)
+    void diamond(BMP24& bmp)
     {
-        BMP24 result(bmp);
         int midWidth = bmp.width() / 2;
         int midHeight = bmp.height() / 2;
         Pixel white = { 255, 255, 255 };
-        drawLine(result, 0, midHeight, midWidth, 0, white);
-        drawLine(result, midWidth, 0, bmp.width() - 1, midHeight, white);
-        drawLine(result, bmp.width() - 1, midHeight, midWidth, bmp.height() - 1, white);
-        drawLine(result, midWidth, bmp.height() - 1, 0, midHeight, white);
-        return result;
+        drawLine(bmp, 0, midHeight, midWidth, 0, white);
+        drawLine(bmp, midWidth, 0, bmp.width() - 1, midHeight, white);
+        drawLine(bmp, bmp.width() - 1, midHeight, midWidth, bmp.height() - 1, white);
+        drawLine(bmp, midWidth, bmp.height() - 1, 0, midHeight, white);
     }
 
-    BMP24 sharpen(const BMP24& bmp)
+    void sharpen(BMP24& bmp)
     {
         std::vector<std::vector<double>> kernel = {
             { 0, -1, 0 },
             { -1, 5, -1 },
             { 0, -1, 0 } };
-        return convolution(bmp, kernel);
+        convolution(bmp, kernel);
     }
 
-    BMP24 emboss(const BMP24& bmp)
+    void emboss(BMP24& bmp)
     {
         std::vector<std::vector<double>> kernel = {
             { -2, -1, 0 },
             { -1, 1, 1 },
             { 0, 1, 2 } };
-        return convolution(bmp, kernel);
+        convolution(bmp, kernel);
     }
 
-    BMP24 detectEdges(const BMP24& bmp)
+    void detectEdges(BMP24& bmp)
     {
         std::vector<std::vector<double>> kernel = {
             { -1, -1, -1 },
             { -1, 8, -1 },
             { -1, -1, -1 } };
-        return convolution(bmp, kernel);
+        convolution(bmp, kernel);
     }
 
-    BMP24 convolution(const BMP24& bmp, const std::vector<std::vector<double>>& kernel)
+    void convolution(BMP24& bmp, const std::vector<std::vector<double>>& kernel)
     {
         BMP24 result(bmp);
         int kernelSize = kernel.size();
@@ -201,6 +188,6 @@ namespace img::filter
                 result(i, j).green = std::min(255, std::max(0, (int)green));
                 result(i, j).blue = std::min(255, std::max(0, (int)blue));
             }
-        return result;
+        bmp = result;
     }
 } // namespace img::filter
