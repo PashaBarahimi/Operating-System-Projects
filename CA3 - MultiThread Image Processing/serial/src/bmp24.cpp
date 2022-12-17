@@ -95,11 +95,12 @@ namespace img
             throw std::runtime_error("File is not open");
         file.write(reinterpret_cast<char*>(&header_), sizeof(BMPHeader));
         file.write(reinterpret_cast<char*>(&infoHeader_), sizeof(BMPInfoHeader));
+        char paddingBuffer[4] = { 0 };
         int padding = (4 - (width_ * sizeof(Pixel)) % 4) % 4;
         for (int y = height_ - 1; y >= 0; --y)
         {
             file.write(reinterpret_cast<char*>(data_ + y * width_), width_ * sizeof(Pixel));
-            file.seekp(padding, std::ios::cur);
+            file.write(paddingBuffer, padding);
         }
     }
 
