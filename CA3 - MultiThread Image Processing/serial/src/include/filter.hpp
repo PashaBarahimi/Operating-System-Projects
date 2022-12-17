@@ -5,7 +5,7 @@
 
 #include "bmp24.hpp"
 
-namespace img
+namespace img::filter
 {
     enum class Rotation
     {
@@ -27,6 +27,6 @@ namespace img
     BMP24 emboss(const BMP24& bmp);
     BMP24 detectEdges(const BMP24& bmp);
     BMP24 convolution(const BMP24& bmp, const std::vector<std::vector<double>>& kernel);
-} // namespace img
+} // namespace img::filter
 
 #endif

@@ -21,9 +21,9 @@ int main(int argc, char* argv[])
         for (int i = 0; i < TEST_ITERATIONS; ++i)
         {
             img::BMP24 bmp(argv[1]);
-            img::BMP24 result = img::flipHorizontal(bmp);
-            result = img::emboss(result);
-            result = img::diamond(result);
+            img::BMP24 result = img::filter::flipHorizontal(bmp);
+            result = img::filter::emboss(result);
+            result = img::filter::diamond(result);
             result.save(OUTPUT_FILE);
         }
         auto end = std::chrono::high_resolution_clock::now();

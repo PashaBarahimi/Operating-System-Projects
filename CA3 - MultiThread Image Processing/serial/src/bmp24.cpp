@@ -141,5 +141,4 @@ namespace img
     {
         return height_;
     }
-
 } // namespace img

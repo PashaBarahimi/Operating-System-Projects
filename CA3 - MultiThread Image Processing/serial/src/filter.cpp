@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace img
+namespace img::filter
 {
     BMP24 flipHorizontal(const BMP24& bmp)
     {
@@ -203,4 +203,4 @@ namespace img
             }
         return result;
     }
-} // namespace img
+} // namespace img::filter
