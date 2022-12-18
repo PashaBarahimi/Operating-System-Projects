@@ -22,8 +22,9 @@ namespace img
     {
     public:
         SubImage(int width, int height, int row, int col);
-        SubImage& operator=(const SubImage& other);
         SubImage();
+        SubImage(const SubImage& other);
+        SubImage& operator=(const SubImage& other);
         ~SubImage();
 
         int width() const;
@@ -40,6 +41,8 @@ namespace img
         int row_;
         int col_;
         Pixel* pixels_;
+
+        void copy(const SubImage& other);
     };
 } // namespace img
 

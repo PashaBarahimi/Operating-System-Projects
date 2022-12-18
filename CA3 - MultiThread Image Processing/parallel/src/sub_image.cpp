@@ -10,25 +10,27 @@ namespace img
         pixels_ = new Pixel[width_ * height_];
     }
 
-    SubImage& SubImage::operator=(const SubImage& other)
-    {
-        if (this != &other)
-        {
-            delete[] pixels_;
-            width_ = other.width_;
-            height_ = other.height_;
-            row_ = other.row_;
-            col_ = other.col_;
-            pixels_ = new Pixel[width_ * height_];
-            std::copy(other.pixels_, other.pixels_ + width_ * height_, pixels_);
-        }
-        return *this;
-    }
-
     SubImage::SubImage()
         : width_(0), height_(0), row_(0), col_(0)
     {
         pixels_ = nullptr;
+    }
+
+    SubImage::SubImage(const SubImage& other)
+    {
+        if (this != &other)
+            copy(other);
+    }
+
+    SubImage& SubImage::operator=(const SubImage& other)
+    {
+        if (this != &other)
+        {
+            if (pixels_ != nullptr)
+                delete[] pixels_;
+            copy(other);
+        }
+        return *this;
     }
 
     SubImage::~SubImage()
@@ -65,5 +67,15 @@ namespace img
     const Pixel& SubImage::operator()(int r, int c) const
     {
         return pixels_[r * width_ + c];
+    }
+
+    void SubImage::copy(const SubImage& other)
+    {
+        width_ = other.width_;
+        height_ = other.height_;
+        row_ = other.row_;
+        col_ = other.col_;
+        pixels_ = new Pixel[width_ * height_];
+        std::copy(other.pixels_, other.pixels_ + width_ * height_, pixels_);
     }
 } // namespace img

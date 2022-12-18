@@ -13,7 +13,7 @@ OUTPUT = ImageFilters.out
 vpath %.cpp $(PATH_SRC)
 vpath %.hpp $(PATH_INC)
 
-OBJS = main.o sub_image.o bmp24.o
+OBJS = main.o sub_image.o bmp24.o filter.o
 
 # ----------------------------------------------------------------------------------------
 
@@ -22,13 +22,16 @@ all: $(PATH_OBJ) $(OUTPUT)
 $(OUTPUT): $(addprefix $(PATH_OBJ)/, $(OBJS))
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $^
 
-$(PATH_OBJ)/main.o: main.cpp thread.hpp bmp24.hpp sub_image.hpp
+$(PATH_OBJ)/main.o: main.cpp thread.hpp bmp24.hpp sub_image.hpp filter.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(PATH_OBJ)/sub_image.o: sub_image.cpp sub_image.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(PATH_OBJ)/bmp24.o: bmp24.cpp bmp24.hpp sub_image.hpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(PATH_OBJ)/filter.o: filter.cpp filter.hpp sub_image.hpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 # ----------------------------------------------------------------------------------------
