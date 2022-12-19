@@ -26,8 +26,7 @@ namespace img
     {
         if (this != &other)
         {
-            if (pixels_ != nullptr)
-                delete[] pixels_;
+            delete[] pixels_;
             copy(other);
         }
         return *this;
@@ -35,8 +34,7 @@ namespace img
 
     SubImage::~SubImage()
     {
-        if (pixels_ != nullptr)
-            delete[] pixels_;
+        delete[] pixels_;
     }
 
     int SubImage::width() const

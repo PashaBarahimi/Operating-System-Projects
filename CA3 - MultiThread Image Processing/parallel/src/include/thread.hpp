@@ -1,5 +1,5 @@
-#ifndef _THREAD_HPP_
-#define _THREAD_HPP_
+#ifndef THREAD_HPP
+#define THREAD_HPP
 
 #include <functional>
 #include <queue>
@@ -16,10 +16,10 @@ class Thread
 public:
     Thread(): running_(true), gen_(std::random_device()()), dis_(0, 1000000)
     {
-        pthread_mutex_init(&finishedMutex_, NULL);
-        pthread_mutex_init(&tasksMutex_, NULL);
-        pthread_cond_init(&tasksCond_, NULL);
-        pthread_create(&thread_, NULL, run, this);
+        pthread_mutex_init(&finishedMutex_, nullptr);
+        pthread_mutex_init(&tasksMutex_, nullptr);
+        pthread_cond_init(&tasksCond_, nullptr);
+        pthread_create(&thread_, nullptr, run, this);
     }
 
     ~Thread()
@@ -80,7 +80,7 @@ public:
     {
         running_ = false;
         pthread_cond_signal(&tasksCond_);
-        pthread_join(thread_, NULL);
+        pthread_join(thread_, nullptr);
     }
 
 private:
@@ -103,7 +103,7 @@ private:
 
     static void* run(void* arg)
     {
-        Thread* thread = (Thread*)arg;
+        auto thread = (Thread*)arg;
         while (thread->running_)
         {
             pthread_mutex_lock(&thread->tasksMutex_);
@@ -125,7 +125,7 @@ private:
             pthread_mutex_unlock(&thread->finishedMutex_);
         }
         thread->running_ = false;
-        pthread_exit(NULL);
+        pthread_exit(nullptr);
     }
 
     std::string generateId()

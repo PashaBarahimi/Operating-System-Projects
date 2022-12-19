@@ -1,5 +1,5 @@
-#ifndef _THREAD_POOL_HPP_
-#define _THREAD_POOL_HPP_
+#ifndef THREAD_POOL_HPP
+#define THREAD_POOL_HPP
 
 #include <functional>
 #include <vector>
@@ -12,7 +12,7 @@ template <typename T>
 class ThreadPool
 {
 public:
-    ThreadPool(int numThreads)
+    explicit ThreadPool(int numThreads)
     {
         for (int i = 0; i < numThreads; i++)
             threads_.push_back(new Thread<T>());

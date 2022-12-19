@@ -1,5 +1,5 @@
-#ifndef _SUB_IMAGE_HPP_
-#define _SUB_IMAGE_HPP_
+#ifndef SUB_IMAGE_HPP
+#define SUB_IMAGE_HPP
 
 #include <cstdint>
 

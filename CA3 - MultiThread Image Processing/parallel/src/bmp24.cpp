@@ -42,7 +42,7 @@ namespace img
         delete[] data_;
     }
 
-    BMP24 BMP24::operator=(const BMP24& other)
+    BMP24& BMP24::operator=(const BMP24& other)
     {
         if (this != &other)
         {
