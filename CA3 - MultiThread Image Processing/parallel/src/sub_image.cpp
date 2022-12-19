@@ -69,6 +69,25 @@ namespace img
         return pixels_[r * width_ + c];
     }
 
+    void SubImage::deleteRow(int r)
+    {
+        for (int i = r; i < height_ - 1; ++i)
+            std::copy(pixels_ + (i + 1) * width_, pixels_ + (i + 2) * width_, pixels_ + i * width_);
+        if (r == 0)
+            row_ += 1;
+        --height_;
+    }
+
+    void SubImage::deleteCol(int c)
+    {
+        for (int i = c; i < width_ - 1; ++i)
+            for (int j = 0; j < height_; ++j)
+                pixels_[j * width_ + i] = pixels_[j * width_ + i + 1];
+        if (c == 0)
+            col_ += 1;
+        --width_;
+    }
+
     void SubImage::copy(const SubImage& other)
     {
         width_ = other.width_;

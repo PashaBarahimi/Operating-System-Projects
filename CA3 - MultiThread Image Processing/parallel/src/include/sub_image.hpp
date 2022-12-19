@@ -35,6 +35,9 @@ namespace img
         Pixel& operator()(int r, int c);
         const Pixel& operator()(int r, int c) const;
 
+        void deleteRow(int r);
+        void deleteCol(int c);
+
     private:
         int width_;
         int height_;

@@ -21,10 +21,7 @@ public:
     ~ThreadPool()
     {
         for (auto& thread : threads_)
-        {
-            thread->stop();
             delete thread;
-        }
     }
 
     std::string addTask(int threadId, std::function<void(T&)> task, T& arg)

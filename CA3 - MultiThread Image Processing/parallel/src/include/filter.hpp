@@ -27,7 +27,7 @@ namespace img::filter
     void emboss(SubImage& img, bool fixBorders = false);
     void detectEdges(SubImage& img, bool fixBorders = false);
     void convolution(SubImage& img, const std::vector<std::vector<double>>& kernel, bool fixBorders = false);
-    void drawLine(SubImage& img, int x1, int y1, int x2, int y2, const Pixel& color);
+    void drawLine(SubImage& img, int x1, int y1, int x2, int y2, const Pixel& color = { 255, 255, 255 });
 } // namespace img::filter
 
 #endif

@@ -3,7 +3,7 @@ PATH_INC  = $(PATH_SRC)/include
 PATH_OBJ  = ./obj
 
 CXX      =  g++
-CXXFLAGS += -g
+CXXFLAGS += -g -Wall
 CPPFLAGS += -std=c++11 -I$(PATH_INC)
 
 OUTPUT = ImageFilters.out
@@ -41,7 +41,7 @@ $(PATH_OBJ):  ; mkdir -p $@
 .PHONY: all clean run
 
 run:
-	./$(OUT_MAIN) $(ARGS)
+	./$(OUTPUT) $(ARGS)
 
 clean:
 	rm -rf $(PATH_OBJ) $(OUTPUT) > /dev/null 2>&1

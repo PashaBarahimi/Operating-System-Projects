@@ -24,9 +24,8 @@ public:
 
     ~Thread()
     {
-        running_ = false;
-        pthread_cond_signal(&tasksCond_);
-        pthread_join(thread_, NULL);
+        if (running_)
+            stop();
         pthread_mutex_destroy(&finishedMutex_);
         pthread_mutex_destroy(&tasksMutex_);
         pthread_cond_destroy(&tasksCond_);
@@ -116,14 +115,17 @@ private:
                 break;
             }
             Task task = thread->tasks_.front();
-            thread->tasks_.pop();
             pthread_mutex_unlock(&thread->tasksMutex_);
             task.task(task.arg);
+            pthread_mutex_lock(&thread->tasksMutex_);
+            thread->tasks_.pop();
+            pthread_mutex_unlock(&thread->tasksMutex_);
             pthread_mutex_lock(&thread->finishedMutex_);
             thread->finished_.insert(task.id);
             pthread_mutex_unlock(&thread->finishedMutex_);
         }
-        return NULL;
+        thread->running_ = false;
+        pthread_exit(NULL);
     }
 
     std::string generateId()
