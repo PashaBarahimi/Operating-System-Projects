@@ -5,6 +5,7 @@
 #include "filter.hpp"
 
 int TEST_ITERATIONS = 1;
+bool PRINT_TIME_ONLY = false;
 const std::string OUTPUT_FILE = "output.bmp";
 
 void executionTime(
@@ -14,7 +15,9 @@ void executionTime(
     static auto s = start;
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> elapsed = end - (fromStart ? s : start);
-    std::cout << name << ": " << elapsed.count() / iterations << " ms" << std::endl;
+    std::cout << (PRINT_TIME_ONLY ? "" : name) << (PRINT_TIME_ONLY ? "" : ": ") << elapsed.count() / iterations
+              << (PRINT_TIME_ONLY ? "" : " ms")
+              << std::endl;
     start = end;
 }
 
@@ -28,6 +31,9 @@ int main(int argc, char* argv[])
 
     if (argc > 2)
         TEST_ITERATIONS = std::stoi(argv[2]);
+
+    if (argc > 3)
+        PRINT_TIME_ONLY = std::stoi(argv[3]);
 
     try
     {

@@ -9,6 +9,7 @@
 #include "filter.hpp"
 
 int TEST_ITERATIONS = 1;
+bool PRINT_TIME_ONLY = false;
 const std::string OUTPUT_FILE = "output.bmp";
 
 void filter(img::BMP24& bmp, int numThreads, ThreadPool<img::SubImage>& pool)
@@ -19,16 +20,14 @@ void filter(img::BMP24& bmp, int numThreads, ThreadPool<img::SubImage>& pool)
     int subImgHeight = bmp.height() / numThreads;
     for (int i = 0; i < numThreads; ++i)
     {
-        pool.addTask(i, [=, &bmp](img::SubImage& subImage)
-            {
-                bmp.createSubImage(rowStart, 0, subImgHeight, bmp.width(), subImage);
-            }, subImages[i]);
+        pool.addTask(i, [=, &bmp](img::SubImage& subImage) {
+            bmp.createSubImage(rowStart, 0, subImgHeight, bmp.width(), subImage);
+        }, subImages[i]);
         if (i != numThreads - 1)
         {
-            pool.addTask(i, [=, &bmp](img::SubImage& subImage)
-                {
-                    bmp.createSubImage(rowStart + subImgHeight - 2, 0, 4, bmp.width(), subImage);
-                }, borderSubImages[i]);
+            pool.addTask(i, [=, &bmp](img::SubImage& subImage) {
+                bmp.createSubImage(rowStart + subImgHeight - 2, 0, 4, bmp.width(), subImage);
+            }, borderSubImages[i]);
         }
         rowStart += subImgHeight;
         if (i == numThreads - 2)
@@ -39,62 +38,54 @@ void filter(img::BMP24& bmp, int numThreads, ThreadPool<img::SubImage>& pool)
         pool.addTask(i, img::filter::flipHorizontal, subImages[i]);
 
     for (int i = 0; i < numThreads; ++i)
-        pool.addTask(i, [=](img::SubImage& subImage)
-            {
-                img::filter::emboss(subImage);
-            }, subImages[i]);
+        pool.addTask(i, [=](img::SubImage& subImage) {
+            img::filter::emboss(subImage);
+        }, subImages[i]);
 
     for (int i = 0; i < numThreads - 1; ++i)
-        pool.addTask(i, [=](img::SubImage& subImage)
-            {
-                img::filter::flipHorizontal(subImage);
-                img::filter::emboss(subImage, true);
-            }, borderSubImages[i]);
+        pool.addTask(i, [=](img::SubImage& subImage) {
+            img::filter::flipHorizontal(subImage);
+            img::filter::emboss(subImage, true);
+        }, borderSubImages[i]);
 
     for (int i = 0; i < numThreads; ++i)
-        pool.addTask(i, [&bmp](img::SubImage& subImage)
-            {
-                bmp.applySubImage(subImage);
-            }, subImages[i]);
+        pool.addTask(i, [&bmp](img::SubImage& subImage) {
+            bmp.applySubImage(subImage);
+        }, subImages[i]);
 
     pool.waitAll();
 
     for (int i = 0; i < numThreads - 1; ++i)
-        pool.addTask(i, [&bmp](img::SubImage& subImage)
-            {
-                subImage.deleteRow(0);
-                subImage.deleteRow(subImage.height() - 1);
-                bmp.applySubImage(subImage);
-            }, borderSubImages[i]);
+        pool.addTask(i, [&bmp](img::SubImage& subImage) {
+            subImage.deleteRow(0);
+            subImage.deleteRow(subImage.height() - 1);
+            bmp.applySubImage(subImage);
+        }, borderSubImages[i]);
     pool.waitAll();
 
-     int midWidth = bmp.width() / 2;
-     int midHeight = bmp.height() / 2;
-     std::vector<img::SubImage> subImages2(4);
-     pool.addTask(0, [=, &bmp](img::SubImage& subImage)
-         {
-             bmp.createSubImage(0, 0, midHeight, midWidth, subImage);
-             img::filter::drawLine(subImage, 0, subImage.height() - 1, subImage.width() - 1, 0);
-             bmp.applySubImage(subImage);
-         }, subImages2[0]);
-     pool.addTask([=, &bmp](img::SubImage& subImage)
-         {
-             bmp.createSubImage(0, midWidth, midHeight, bmp.width() - midWidth, subImage);
-             img::filter::drawLine(subImage, 0, 0, subImage.width() - 1, subImage.height() - 1);
-             bmp.applySubImage(subImage);
-         }, subImages2[1]);
-     pool.addTask([=, &bmp](img::SubImage& subImage)
-         {
-             bmp.createSubImage(midHeight, 0, bmp.height() - midHeight, midWidth, subImage);
-             img::filter::drawLine(subImage, 0, 0, subImage.width() - 1, subImage.height() - 1);
-             bmp.applySubImage(subImage);
-         }, subImages2[2]);
-     pool.addTask([=, &bmp](img::SubImage& subImage)
-         {
-             bmp.createSubImage(midHeight, midWidth, bmp.height() - midHeight, bmp.width() - midWidth, subImage);
-             img::filter::drawLine(subImage, 0, subImage.height() - 1, subImage.width() - 1, 0);
-             bmp.applySubImage(subImage);
-         }, subImages2[3]);
+    int midWidth = bmp.width() / 2;
+    int midHeight = bmp.height() / 2;
+    std::vector<img::SubImage> subImages2(4);
+    pool.addTask(0, [=, &bmp](img::SubImage& subImage) {
+        bmp.createSubImage(0, 0, midHeight, midWidth, subImage);
+        img::filter::drawLine(subImage, 0, subImage.height() - 1, subImage.width() - 1, 0);
+        bmp.applySubImage(subImage);
+    }, subImages2[0]);
+    pool.addTask([=, &bmp](img::SubImage& subImage) {
+        bmp.createSubImage(0, midWidth, midHeight, bmp.width() - midWidth, subImage);
+        img::filter::drawLine(subImage, 0, 0, subImage.width() - 1, subImage.height() - 1);
+        bmp.applySubImage(subImage);
+    }, subImages2[1]);
+    pool.addTask([=, &bmp](img::SubImage& subImage) {
+        bmp.createSubImage(midHeight, 0, bmp.height() - midHeight, midWidth, subImage);
+        img::filter::drawLine(subImage, 0, 0, subImage.width() - 1, subImage.height() - 1);
+        bmp.applySubImage(subImage);
+    }, subImages2[2]);
+    pool.addTask([=, &bmp](img::SubImage& subImage) {
+        bmp.createSubImage(midHeight, midWidth, bmp.height() - midHeight, bmp.width() - midWidth, subImage);
+        img::filter::drawLine(subImage, 0, subImage.height() - 1, subImage.width() - 1, 0);
+        bmp.applySubImage(subImage);
+    }, subImages2[3]);
     pool.waitAll();
 }
 
@@ -109,6 +100,9 @@ int main(int argc, char* argv[])
     if (argc > 2)
         TEST_ITERATIONS = std::stoi(argv[2]);
 
+    if (argc > 3)
+        PRINT_TIME_ONLY = std::stoi(argv[3]);
+
     int numThreads = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN));
     if (numThreads < 4)
         numThreads = 4;
@@ -117,7 +111,8 @@ int main(int argc, char* argv[])
     {
         auto start = std::chrono::high_resolution_clock::now();
         ThreadPool<img::SubImage> pool(numThreads);
-        std::cout << "Number of threads: " << numThreads << std::endl;
+        if (!PRINT_TIME_ONLY)
+            std::cout << "Number of threads: " << numThreads << std::endl;
         for (int i = 0; i < TEST_ITERATIONS; ++i)
         {
             img::BMP24 image(argv[1]);
@@ -125,9 +120,9 @@ int main(int argc, char* argv[])
             image.save(OUTPUT_FILE);
         }
         auto end = std::chrono::high_resolution_clock::now();
-        // double milli
         std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Execution Time: " << elapsed.count() / TEST_ITERATIONS << " ms" << std::endl;
+        std::cout << (PRINT_TIME_ONLY ? "" : "Execution Time: ") << elapsed.count() / TEST_ITERATIONS
+                  << (PRINT_TIME_ONLY ? "" : " ms") << std::endl;
         pool.stop();
         return 0;
     }
