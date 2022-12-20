@@ -125,7 +125,9 @@ int main(int argc, char* argv[])
             image.save(OUTPUT_FILE);
         }
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
+        // double milli
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        std::cout << "Execution Time: " << elapsed.count() / TEST_ITERATIONS << " ms" << std::endl;
         pool.stop();
         return 0;
     }
