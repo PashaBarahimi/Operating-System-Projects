@@ -30,7 +30,8 @@ int main(int argc, char* argv[])
             bmp.save(OUTPUT_FILE);
         }
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Executation Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
+        std::cout << "Execution Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / TEST_ITERATIONS << "ms" << std::endl;
+        return 0;
     }
     catch (const std::exception& e)
     {

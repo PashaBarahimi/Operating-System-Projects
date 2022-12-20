@@ -41,7 +41,7 @@ namespace img
         delete[] data_;
     }
 
-    BMP24 BMP24::operator=(const BMP24& other)
+    BMP24& BMP24::operator=(const BMP24& other)
     {
         if (this != &other)
         {
@@ -73,10 +73,10 @@ namespace img
     {
         data_ = new Pixel[width_ * height_];
         file.seekg(header_.dataOffset);
-        int padding = (4 - (width_ * sizeof(Pixel)) % 4) % 4;
+        int padding = static_cast<int>(4 - (width_ * sizeof(Pixel)) % 4) % 4;
         for (int y = height_ - 1; y >= 0; --y)
         {
-            file.read(reinterpret_cast<char*>(data_ + y * width_), width_ * sizeof(Pixel));
+            file.read(reinterpret_cast<char*>(data_ + y * width_), static_cast<std::streamsize >(width_ * sizeof(Pixel)));
             file.seekg(padding, std::ios::cur);
         }
     }
@@ -96,10 +96,10 @@ namespace img
         file.write(reinterpret_cast<char*>(&header_), sizeof(BMPHeader));
         file.write(reinterpret_cast<char*>(&infoHeader_), sizeof(BMPInfoHeader));
         char paddingBuffer[4] = { 0 };
-        int padding = (4 - (width_ * sizeof(Pixel)) % 4) % 4;
+        int padding = static_cast<int>(4 - (width_ * sizeof(Pixel)) % 4) % 4;
         for (int y = height_ - 1; y >= 0; --y)
         {
-            file.write(reinterpret_cast<char*>(data_ + y * width_), width_ * sizeof(Pixel));
+            file.write(reinterpret_cast<char*>(data_ + y * width_), static_cast<std::streamsize>(width_ * sizeof(Pixel)));
             file.write(paddingBuffer, padding);
         }
     }
@@ -109,6 +109,8 @@ namespace img
         header_.signature = BMP_SIGNATURE;
         header_.reserved = 0;
         header_.dataOffset = sizeof(BMPHeader) + sizeof(BMPInfoHeader);
+        int padding = static_cast<int>(4 - (width_ * sizeof(Pixel)) % 4) % 4;
+        header_.fileSize = header_.dataOffset + height_ * (width_ * sizeof(Pixel) + padding);
         infoHeader_.headerSize = sizeof(BMPInfoHeader);
         infoHeader_.width = width_;
         infoHeader_.height = height_;

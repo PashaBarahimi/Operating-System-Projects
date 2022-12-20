@@ -1,5 +1,5 @@
-#ifndef _BMP24_HPP_
-#define _BMP24_HPP_
+#ifndef BMP24_HPP
+#define BMP24_HPP
 
 #include <string>
 #include <fstream>
@@ -50,24 +50,27 @@ namespace img
     class BMP24
     {
     public:
-        BMP24(const std::string& filename);
-        BMP24(std::ifstream& file);
+        explicit BMP24(const std::string& filename);
+        explicit BMP24(std::ifstream& file);
         BMP24(const BMP24& other);
         BMP24(int width, int height);
         ~BMP24();
-        BMP24 operator=(const BMP24& other);
-        void save(const std::string& filename);
-        void save(std::ofstream& file);
+
+        BMP24& operator=(const BMP24& other);
         Pixel& operator()(int r, int c);
         Pixel operator()(int r, int c) const;
+
+        void save(const std::string& filename);
+        void save(std::ofstream& file);
+
         int width() const;
         int height() const;
 
     private:
         void load(std::ifstream& file);
         void loadData(std::ifstream& file);
-        void write(std::ofstream& file);
         void setHeader();
+
         int width_;
         int height_;
         Pixel* data_;
