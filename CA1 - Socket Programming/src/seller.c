@@ -194,6 +194,7 @@ void sell(int index)
         FD_CLR(sockFd, &masterSet);
         close(sockFd);
         adverts.ads[index].sockFd = -1;
+        --negotiationCount;
     }
     adverts.ads[index].status = SOLD;
     broadcastAdvert(&adverts.ads[index]);
